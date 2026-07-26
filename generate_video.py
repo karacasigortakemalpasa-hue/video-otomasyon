@@ -365,7 +365,7 @@ Output EXACTLY this JSON schema, nothing else:
 TOPIC: {topic}
 """
 
-    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent"
     payload = {
         "contents": [{"parts": [{"text": system_prompt}]}],
         "generationConfig": {"responseMimeType": "application/json"},
