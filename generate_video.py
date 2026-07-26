@@ -83,18 +83,29 @@ def get_audio_duration(path: str) -> float:
     return float(result.stdout.strip())
 
 
-def make_scene_clip(image_path: str, audio_path: str, index: int) -> str:
-    """Sabit görsele Ken Burns (yavaş yakınlaşma) efekti uygulayıp sesle birleştirir."""
+def make_scene_clip(image_path: str, audio_path: str, index: int, subtitle_text: str = "") -> str:
+    """Sabit görsele Ken Burns efekti + opsiyonel altyazı uygulayıp sesle birleştirir."""
     duration = get_audio_duration(audio_path)
     fps = 30
     total_frames = int(duration * fps)
 
     out_path = os.path.join(CLIP_DIR, f"clip_{index:03d}.mp4")
 
-    vf = (
-        f"scale=2000:2000,"
-        f"zoompan=z='min(zoom+0.0007,1.3)':d={total_frames}:s=1280x1280:fps={fps}"
-    )
+    vf_parts = [
+        "scale=2000:2000",
+        f"zoompan=z='min(zoom+0.0007,1.3)':d={total_frames}:s=1280x1280:fps={fps}",
+    ]
+
+    if subtitle_text:
+        safe_text = subtitle_text.replace("'", "\u2019").replace(":", "\\:").replace(",", "\\,")
+        vf_parts.append(
+            "drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:"
+            f"text='{safe_text}':fontcolor=white:fontsize=42:"
+            "borderw=3:bordercolor=black:x=(w-text_w)/2:y=h-160:"
+            "line_spacing=8"
+        )
+
+    vf = ",".join(vf_parts)
 
     cmd = [
         "ffmpeg", "-y",
@@ -140,12 +151,11 @@ def main():
         scenes = json.load(f)
 
     clip_paths = []
-    prev_image = None
     for i, scene in enumerate(scenes, start=1):
-        image_path = generate_image(scene["image_prompt"], i, reference_image=prev_image)
-        prev_image = None
+        ref = scene.get("reference_image_url")  # scenes.json'da opsiyonel alan
+        image_path = generate_image(scene["image_prompt"], i, reference_image=ref)
         audio_path = generate_audio(scene["narration"], i)
-        clip_path = make_scene_clip(image_path, audio_path, i)
+        clip_path = make_scene_clip(image_path, audio_path, i, subtitle_text=scene["narration"])
         clip_paths.append(clip_path)
 
     final = concat_clips(clip_paths)
