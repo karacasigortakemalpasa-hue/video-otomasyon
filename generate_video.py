@@ -68,7 +68,7 @@ def _download(url: str, out_path: str):
 def generate_image(prompt: str, index: int, seed: int = 42, reference_image: str = None) -> str:
     """Pollinations.ai'dan görsel indirir, dosya yolunu döner."""
     encoded_prompt = urllib.parse.quote(prompt)
-    url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1280&height=720&seed={seed}&model=flux&enhance=true"
+    url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1280&height=720&seed={seed}&model=flux"
     if reference_image:
         url += f"&image={urllib.parse.quote(reference_image)}"
 
@@ -85,7 +85,7 @@ def generate_thumbnail(thumb_cfg: dict, reference_image: str = None) -> str:
     raw_bg_path = os.path.join(OUTPUT_DIR, "thumbnail_bg.jpg")
 
     encoded_prompt = urllib.parse.quote(bg_prompt)
-    url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1280&height=720&seed={seed}&model=flux&enhance=true"
+    url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1280&height=720&seed={seed}&model=flux"
     if reference_image:
         url += f"&image={urllib.parse.quote(reference_image)}"
 
