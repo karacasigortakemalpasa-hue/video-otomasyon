@@ -91,7 +91,7 @@ def _gemini_generate_image(prompt: str, out_path: str, aspect_ratio: str = "16:9
 
     parts.append({"text": prompt})
 
-    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-image:generateContent"
+    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent"
     payload = {
         "contents": [{"parts": parts}],
         "generationConfig": {"imageConfig": {"aspectRatio": aspect_ratio}},
@@ -320,6 +320,81 @@ def upload_to_youtube(video_path: str, thumb_path: str, meta: dict):
     return video_id
 
 
+REFERENCE_IMAGE_URL = "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+
+STYLE_GUIDE = """[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines."""
+
+
+def expand_topic_to_scenes(topic: str, num_scenes: int = 30) -> dict:
+    """Bir konu cumlesini Gemini metin modeliyle tam scenes.json yapisina cevirir."""
+    if not GEMINI_KEY:
+        raise RuntimeError("GEMINI_API_KEY tanımlı değil.")
+
+    system_prompt = f"""You are a scriptwriter and art director for a comedic, fact-based YouTube Shorts/explainer channel.
+Given a TOPIC, produce a complete video plan as STRICT JSON (no markdown fences, no commentary, just the JSON object).
+
+Style guide for every image_prompt (always start each image_prompt with this exact style block, then add scene-specific action after it):
+"{STYLE_GUIDE}"
+
+Rules:
+- Tone: humorous, witty, entertaining, but grounded in real, accurate information about the topic. Avoid mean-spirited or offensive stereotypes; keep it lighthearted and fair to all groups mentioned.
+- Exactly {num_scenes} scenes.
+- Each "narration" is 1-2 short spoken sentences in English, natural conversational tone, building a coherent narrative arc from hook to conclusion.
+- The FIRST scene must be an attention-grabbing hook question or statement about the topic.
+- The LAST scene must include a friendly call to action asking viewers to subscribe and like the video.
+- Each "image_prompt" must describe a specific, concrete visual action/scene (following the style guide above), matching that scene's narration.
+- "video_meta.title" is a catchy, clickable YouTube title (under 70 characters).
+- "video_meta.description" is 2-4 sentences plus 3-5 relevant hashtags.
+- "video_meta.tags" is a list of 5-10 relevant keyword tags.
+- "thumbnail.background_prompt" follows the same style guide, depicting a compelling split/comparison scene relevant to the topic.
+- "thumbnail.left_label" and "thumbnail.right_label" are short (1-2 word) punchy labels for a comparison thumbnail relevant to the topic (omit or use generic labels like "MYTH"/"FACT" if the topic isn't a two-sided comparison).
+- "thumbnail.left_color" and "thumbnail.right_color" are hex-like ffmpeg colors in the form 0xRRGGBB.
+
+Output EXACTLY this JSON schema, nothing else:
+{{
+  "video_meta": {{"title": "...", "description": "...", "tags": ["...", "..."]}},
+  "thumbnail": {{"background_prompt": "...", "left_label": "...", "right_label": "...", "left_color": "0x2E86AB", "right_color": "0xE07A5F"}},
+  "scenes": [
+    {{"image_prompt": "...", "narration": "..."}}
+  ]
+}}
+
+TOPIC: {topic}
+"""
+
+    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+    payload = {
+        "contents": [{"parts": [{"text": system_prompt}]}],
+        "generationConfig": {"responseMimeType": "application/json"},
+    }
+    data = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(
+        url, data=data,
+        headers={"Content-Type": "application/json", "x-goog-api-key": GEMINI_KEY},
+    )
+    print(f"Konu senaryoya çevriliyor: {topic[:60]}...")
+    try:
+        with urllib.request.urlopen(req, timeout=180) as resp:
+            result = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8", errors="ignore")
+        print(f"GEMINI METIN HATA {e.code}: {body}")
+        raise
+
+    text_out = result["candidates"][0]["content"]["parts"][0]["text"]
+    text_out = text_out.strip()
+    if text_out.startswith("```"):
+        text_out = text_out.split("```")[1]
+        if text_out.startswith("json"):
+            text_out = text_out[4:]
+    config = json.loads(text_out)
+
+    for scene in config["scenes"]:
+        scene["reference_image_url"] = REFERENCE_IMAGE_URL
+
+    return config
+
+
 def main():
     if len(sys.argv) < 2:
         print("Kullanım: python generate_video.py scenes.json")
@@ -327,6 +402,11 @@ def main():
 
     with open(sys.argv[1], "r", encoding="utf-8") as f:
         config = json.load(f)
+
+    if "scenes" not in config and "topic" in config:
+        config = expand_topic_to_scenes(config["topic"], config.get("num_scenes", 30))
+        with open(os.path.join(OUTPUT_DIR, "expanded_scenes.json"), "w", encoding="utf-8") as f:
+            json.dump(config, f, ensure_ascii=False, indent=2)
 
     scenes = config["scenes"]
     meta = config.get("video_meta", {})
