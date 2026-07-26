@@ -163,7 +163,7 @@ def generate_thumbnail(thumb_cfg: dict, reference_image: str = None) -> str:
     return final_thumb
 
 
-def generate_audio(text: str, index: int, voice_name: str = "en-US-Neural2-D", language_code: str = "en-US") -> str:
+def generate_audio(text: str, index: int, voice_name: str = "en-GB-Neural2-F", language_code: str = "en-GB") -> str:
     """Google Cloud Text-to-Speech ile seslendirme üretir, mp3 dosya yolu döner."""
     if not GOOGLE_TTS_KEY:
         raise RuntimeError("GOOGLE_TTS_API_KEY tanımlı değil.")
