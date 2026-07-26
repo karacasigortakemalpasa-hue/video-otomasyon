@@ -1,6 +1,5 @@
 name: Video Uret
 
-# Bu is sadece "Run workflow" butonuna basinca calisir
 on:
   workflow_dispatch:
 
@@ -19,14 +18,22 @@ jobs:
       - name: ffmpeg ve font kur
         run: sudo apt-get update && sudo apt-get install -y ffmpeg fonts-dejavu-core
 
-      - name: Video uret
+      - name: Python paketlerini kur
+        run: pip install -r requirements.txt
+
+      - name: Video uret ve YouTube'a yukle
         env:
           POLLINATIONS_API_KEY: ${{ secrets.POLLINATIONS_API_KEY }}
           GOOGLE_TTS_API_KEY: ${{ secrets.GOOGLE_TTS_API_KEY }}
+          YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+          YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+          YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
         run: python generate_video.py scenes.json
 
-      - name: Bitmis videoyu yukle (indirilebilir dosya olarak)
+      - name: Ciktilari yukle (indirilebilir dosya olarak)
         uses: actions/upload-artifact@v4
         with:
           name: video-ciktisi
-          path: output/final_video.mp4
+          path: |
+            output/final_video.mp4
+            output/thumbnail.jpg
