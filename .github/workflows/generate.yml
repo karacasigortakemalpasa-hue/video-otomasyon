@@ -1,0 +1,32 @@
+name: Video Uret
+
+# Bu is sadece "Run workflow" butonuna basinca calisir
+on:
+  workflow_dispatch:
+
+jobs:
+  generate-video:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repo'yu indir
+        uses: actions/checkout@v4
+
+      - name: Python kur
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: ffmpeg kur
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Video uret
+        env:
+          POLLINATIONS_API_KEY: ${{ secrets.POLLINATIONS_API_KEY }}
+          GOOGLE_TTS_API_KEY: ${{ secrets.GOOGLE_TTS_API_KEY }}
+        run: python generate_video.py scenes.json
+
+      - name: Bitmis videoyu yukle (indirilebilir dosya olarak)
+        uses: actions/upload-artifact@v4
+        with:
+          name: video-ciktisi
+          path: output/final_video.mp4
