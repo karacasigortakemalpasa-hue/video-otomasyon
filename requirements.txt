@@ -1,0 +1,2 @@
+# Bu proje sadece Python'un standart kütüphanelerini kullanıyor (urllib, json, subprocess)
+# Ekstra pip paketine gerek yok. Bu dosya ileride bir şey eklersek diye duruyor.
