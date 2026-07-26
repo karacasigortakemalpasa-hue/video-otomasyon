@@ -5,7 +5,7 @@ on:
   schedule:
     # Her gun Turkiye saatiyle 18:00 (UTC 15:00) calisir. Saati degistirmek icin
     # asagidaki '0 15 * * *' kismini duzenle (UTC saat * gun format).
-    - cron: '0 15 * * *'
+    - cron: '0 20 * * *'
 
 permissions:
   contents: write
