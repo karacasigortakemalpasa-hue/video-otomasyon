@@ -1,0 +1,174 @@
+{
+  "video_meta": {
+    "title": "Are Men REALLY Better Drivers Than Women? (The Data)",
+    "description": "We analyze the classic driving debate using real crash statistics, insurance data, and behavioral science. Who actually drives safer? The answer might surprise you! #driving #carfacts #mythbusters #drivingstats #facts",
+    "tags": [
+      "men vs women driving",
+      "driving statistics",
+      "car myths",
+      "insurance rates",
+      "car crash stats",
+      "driving stereotypes",
+      "road safety"
+    ]
+  },
+  "thumbnail": {
+    "background_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines. A split comparison scene: on the left, a confident male stick figure in a bright red jacket revs a speeding sports car; on the right, a calm female stick figure wearing a blue sweater drives a clean compact hatchback safely.",
+    "left_label": "MYTH",
+    "right_label": "DATA",
+    "left_color": "0xD90429",
+    "right_color": "0x2A9D8F"
+  },
+  "scenes": [
+    {
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines. A confused stick figure wearing a bright yellow hoodie standing between a sleek sports car and a compact sedan, scratching their head with a giant floating question mark overhead.",
+      "narration": "Are men actually better drivers than women, or have we all been sold a complete myth?",
+      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+    },
+    {
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines. A male stick figure in a red scarf flexing superhero muscles on top of a vintage race car inside a retro television screen.",
+      "narration": "For decades, pop culture and endless dad jokes insisted that men were born formula-one prodigies.",
+      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+    },
+    {
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines. A female stick figure in a bright orange hat attempting to parallel park between two oversized trucks while another driver taps his watch impatiently.",
+      "narration": "While women were endlessly teased about struggle-parking in empty grocery store lots.",
+      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+    },
+    {
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines. A dramatic scene of a huge ledger book snapping shut, sending paper pages flying, revealing real insurance graphs underneath.",
+      "narration": "But when you open up real insurance files and traffic safety records, the narrative completely flips.",
+      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+    },
+    {
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines. A stick figure detective wearing a bright blue trench coat pointing a magnifying glass at a massive pile of vehicular incident reports.",
+      "narration": "Let me break down what the crash statistics actually reveal about both sexes behind the wheel.",
+      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+    },
+    {
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines. Two cars gently touching bumpers at five miles per hour, with a female stick figure in a green sweater stepping out facepalming.",
+      "narration": "When it comes to minor fender benders, women do get into slightly more total incidents per driver.",
+      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+    },
+    {
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines. A car slowly tapping a rubber parking cone in a crowded parking lot, leaving a tiny smudged scratch on the bumper.",
+      "narration": "We are talking low-speed parking lot scrapes, minor backing-up taps, and tiny dented bumpers.",
+      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+    },
+    {
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines. A referee stick figure wearing a purple shirt blowing a whistle and signaling a hard stop with hands.",
+      "narration": "But hold on! Before anyone jumps to conclusions, look at the severity of those accidents.",
+      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+    },
+    {
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines. A heavily damaged car surrounded by warning tape with a male stick figure in a red hoodie looking shocked and wide-eyed.",
+      "narration": "Men are dramatically more likely to be involved in high-speed, catastrophic collisions.",
+      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+    },
+    {
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines. A scientist stick figure in a yellow lab coat analyzing a chart titled Driver Risk Profiles with high spikes.",
+      "narration": "Why? Behavioral data shows male drivers engage in significantly riskier habits on the road.",
+      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+    },
+    {
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines. A male driver stick figure wearing a bright red cap tailgating another car impossibly close with flame effects on the tires.",
+      "narration": "That includes excessive speeding, aggressive tailgating, and reckless lane weaving.",
+      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+    },
+    {
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines. A driver stick figure sitting in a car with an unbuckled seatbelt highlighted by a glowing orange alert icon.",
+      "narration": "Men are also statistically less likely to click their seatbelts while driving.",
+      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+    },
+    {
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines. A double bar graph comparing drunk driving statistics, with a tall bar for men wearing a red tag and a much shorter bar for women.",
+      "narration": "And DUI statistics? Men account for roughly four out of every five drunk driving violations.",
+      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+    },
+    {
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines. A stack of soaring bills and financial receipts landing heavily on a wooden desk.",
+      "narration": "So who ends up paying for all this aggressive driving behaviour?",
+      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+    },
+    {
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines. A young male stick figure in a bright blue jacket holding an outrageously huge insurance bill with jaw dropped in horror.",
+      "narration": "Young male drivers! Their auto insurance premiums are notoriously higher than anyone else's.",
+      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+    },
+    {
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines. An insurance actuary stick figure in a green visor calculating risk math on a gigantic mechanical calculator.",
+      "narration": "Insurance companies don't care about internet arguments; they only care about probability and risk.",
+      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+    },
+    {
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines. An official risk chart ranking driver demographics, with teenage males highlighted at the top in bright neon orange.",
+      "narration": "And cold hard math consistently labels young men as the highest financial risk on four wheels.",
+      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+    },
+    {
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines. A long winding highway stretching into the distance with a odometer spinning rapidly.",
+      "narration": "Now, to be fair, is there a catch to all these statistics?",
+      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+    },
+    {
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines. A male driver stick figure in a purple jacket cruising along a highway next to a sign showing thousands of miles driven.",
+      "narration": "Yes! On average, men drive about sixty percent more miles per year than women do.",
+      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+    },
+    {
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines. A mathematical formula floating above two scale balances adjusting back toward equal level.",
+      "narration": "So when researchers measure accidents per mile driven, the gap narrows noticeably.",
+      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+    },
+    {
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines. A serious looking pie chart showing fatal crash rates, with the male segment outlined in a prominent red glow.",
+      "narration": "Yet even per mile, male drivers are still involved in significantly more fatal crashes.",
+      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+    },
+    {
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines. Two vehicle silhouettes parked side by side: a huge lifted pickup truck and a small suburban sedan.",
+      "narration": "Vehicle selection also plays a subtle role in these outcomes.",
+      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+    },
+    {
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines. A male stick figure in a red racing jacket revving a heavy muscle car with dark smoke billowing from the back.",
+      "narration": "Men buy heavier trucks and faster cars on average, increasing crash momentum.",
+      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+    },
+    {
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines. A female stick figure in a cyan raincoat happily putting groceries into a safe modern hatchback.",
+      "narration": "While women statistically prefer safer, practical commuter vehicles that naturally keep speeds down.",
+      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+    },
+    {
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines. A car stopping perfectly behind a painted white line at a bright red traffic light.",
+      "narration": "Studies also show women consistently follow traffic signals and stop signs more reliably.",
+      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+    },
+    {
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines. A male stick figure wearing a yellow crown flexing in front of a rearview mirror with exaggerated confidence.",
+      "narration": "Interestingly, men self-report much higher confidence in their driving skills, even when safety stats disagree!",
+      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+    },
+    {
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines. A golden trophy resting on a podium surrounded by miniature car models.",
+      "narration": "So who actually wins the ultimate Battle of the Roads?",
+      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+    },
+    {
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines. A female stick figure wearing a green winner's sash holding a gold medal with a sign saying Lowest Insurance Rates.",
+      "narration": "Women take the crown for overall safety, survival rates, and cheaper insurance!",
+      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+    },
+    {
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines. A male stick figure in a bright red shirt shrugging playfully next to an empty wallet and a perfectly parallel-parked truck.",
+      "narration": "While men win at... well, paying massive insurance premiums and talking about horsepower!",
+      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+    },
+    {
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines. Two stick figures (one in green, one in red) waving cheerfully next to giant glowing Subscribe and Like buttons.",
+      "narration": "Drive safe out there! Hit that like button and subscribe for more fun facts and myth-busting!",
+      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+    }
+  ]
+}
