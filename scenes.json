@@ -5,7 +5,7 @@
     "tags": ["men vs women driving", "driving statistics", "car accidents study", "fun facts", "myth busted"]
   },
   "thumbnail": {
-    "background_prompt": "flat 2D cartoon illustration, thick black outlines, simple flat solid colors, no shading, no gradients, no texture, a man and a woman sitting in a car, split composition, simple flat background",
+    "background_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm golden light and one colored item of clothing break the palette. A man and a woman sit inside a car, split composition, one on each side, stick-figure-person style with details, round white heads, small dot eyes, expressive faces. Highly detailed crosshatched background of a city street. Minimal noise, sharp lines.",
     "left_label": "WOMEN",
     "right_label": "MEN",
     "left_color": "0xE07A5F",
@@ -13,27 +13,27 @@
   },
   "scenes": [
     {
-      "image_prompt": "flat 2D cartoon illustration, thick black outlines, simple flat solid colors, no shading, no gradients, no texture, a man and a woman sitting at a bar table arguing playfully with exaggerated deadpan expressions, simple flat background",
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal, depicting a cozy bar interior. Only selective warm golden lamp light and one colored item of clothing break the palette. A man and a woman sit at a bar table, playfully arguing, stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background with bottles on shelves. Minimal noise, sharp lines.",
       "narration": "Who is actually the better driver, men or women? This debate has been going on forever.",
       "reference_image_url": null
     },
     {
-      "image_prompt": "flat 2D cartoon illustration, thick black outlines, simple flat solid colors, no shading, no gradients, no texture, a woman sitting at a kitchen counter reading printed statistics papers with a serious deadpan expression, simple flat background",
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal, depicting a kitchen. Only selective warm window light and one colored item of clothing break the palette. A woman sits at a kitchen counter reading printed statistics papers, serious expression, stick-figure-person style with details, round white head, small dot eyes. Highly detailed crosshatched kitchen background. Minimal noise, sharp lines.",
       "narration": "So we looked at the actual data from insurance companies and government safety agencies.",
       "reference_image_url": null
     },
     {
-      "image_prompt": "flat 2D cartoon illustration, thick black outlines, simple flat solid colors, no shading, no gradients, no texture, a man driving a car fast with a smug deadpan expression, motion lines behind the car, simple flat background",
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal, depicting a city street at dusk. Only selective warm headlight glow and one colored item of clothing break the palette. A man drives a car fast with a smug expression, motion lines behind the car, stick-figure-person style with details, round white head, small dot eyes. Highly detailed crosshatched street background. Minimal noise, sharp lines.",
       "narration": "Here's the twist: men are involved in about seventy two percent of fatal car crashes.",
       "reference_image_url": null
     },
     {
-      "image_prompt": "flat 2D cartoon illustration, thick black outlines, simple flat solid colors, no shading, no gradients, no texture, a woman carefully parking a car with a focused deadpan expression, a small dented car nearby, simple flat background",
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal, depicting a parking lot. Only selective warm streetlight glow and one colored item of clothing break the palette. A woman carefully parks a car, focused expression, a small dented car nearby, stick-figure-person style with details, round white head, small dot eyes. Highly detailed crosshatched parking lot background. Minimal noise, sharp lines.",
       "narration": "Women, on the other hand, are slightly more likely to have minor fender-benders, but far less likely to cause serious harm.",
       "reference_image_url": null
     },
     {
-      "image_prompt": "flat 2D cartoon illustration, thick black outlines, simple flat solid colors, no shading, no gradients, no texture, a man and a woman walking together down a street smiling and shaking hands, simple flat background",
+      "image_prompt": "[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal, depicting a city street. Only selective warm sunset light and one colored item of clothing break the palette. A man and a woman walk together smiling and shaking hands, stick-figure-person style with details, round white heads, small dot eyes. Highly detailed crosshatched street background. Minimal noise, sharp lines.",
       "narration": "So maybe it's not about who's better, but about different habits. If you enjoyed this, hit subscribe for more fact-checked fun!",
       "reference_image_url": null
     }
