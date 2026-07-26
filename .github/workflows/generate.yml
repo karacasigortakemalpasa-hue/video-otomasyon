@@ -23,6 +23,7 @@ jobs:
 
       - name: Video uret ve YouTube'a yukle
         env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           POLLINATIONS_API_KEY: ${{ secrets.POLLINATIONS_API_KEY }}
           GOOGLE_TTS_API_KEY: ${{ secrets.GOOGLE_TTS_API_KEY }}
           YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
