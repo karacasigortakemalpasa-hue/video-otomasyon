@@ -149,6 +149,22 @@ def get_audio_duration(path: str) -> float:
     return float(result.stdout.strip())
 
 
+def wrap_text(text: str, max_chars: int = 42) -> str:
+    """Uzun cümleyi ekrana sığacak şekilde birden fazla satıra böler."""
+    words = text.split()
+    lines, current = [], ""
+    for word in words:
+        candidate = (current + " " + word).strip()
+        if len(candidate) > max_chars and current:
+            lines.append(current)
+            current = word
+        else:
+            current = candidate
+    if current:
+        lines.append(current)
+    return "\n".join(lines)
+
+
 def make_scene_clip(image_path: str, audio_path: str, index: int, subtitle_text: str = "") -> str:
     """Sabit görsele Ken Burns efekti + opsiyonel altyazı uygulayıp sesle birleştirir."""
     duration = get_audio_duration(audio_path)
@@ -158,17 +174,19 @@ def make_scene_clip(image_path: str, audio_path: str, index: int, subtitle_text:
     out_path = os.path.join(CLIP_DIR, f"clip_{index:03d}.mp4")
 
     vf_parts = [
-        "scale=2560:1440",
-        f"zoompan=z='min(zoom+0.0007,1.3)':d={total_frames}:s=1280x720:fps={fps}",
+        "scale=1600:900:force_original_aspect_ratio=increase",
+        "crop=1600:900",
+        f"zoompan=z='min(zoom+0.0007,1.3)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={total_frames}:s=1280x720:fps={fps}",
     ]
 
     if subtitle_text:
-        safe_text = subtitle_text.replace("'", "\u2019").replace(":", "\\:").replace(",", "\\,")
+        wrapped = wrap_text(subtitle_text)
+        safe_text = wrapped.replace("'", "\u2019").replace(":", "\\:").replace(",", "\\,")
         vf_parts.append(
             "drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:"
-            f"text='{safe_text}':fontcolor=white:fontsize=38:"
-            "borderw=3:bordercolor=black:x=(w-text_w)/2:y=h-140:"
-            "line_spacing=8"
+            f"text='{safe_text}':fontcolor=white:fontsize=34:"
+            "borderw=3:bordercolor=black:x=(w-text_w)/2:y=h-170:"
+            "line_spacing=6"
         )
 
     vf = ",".join(vf_parts)
