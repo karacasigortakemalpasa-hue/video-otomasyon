@@ -104,14 +104,14 @@ def generate_thumbnail(thumb_cfg: dict, reference_image: str = None) -> str:
         f"drawbox=x=0:y=0:w=iw/2-2:h=120:color={left_color}@0.92:t=fill,"
         f"drawbox=x=iw/2+2:y=0:w=iw/2-2:h=120:color={right_color}@0.92:t=fill,"
         f"drawtext=fontfile={font}:text='{left_label}':fontcolor=white:fontsize=64:"
-        f"x=(iw/4)-(text_w/2):y=30:borderw=3:bordercolor=black,"
+        f"x=(w/4)-(text_w/2):y=30:borderw=3:bordercolor=black,"
         f"drawtext=fontfile={font}:text='VS':fontcolor=yellow:fontsize=54:"
-        f"x=(iw/2)-(text_w/2):y=30:borderw=3:bordercolor=black,"
+        f"x=(w/2)-(text_w/2):y=30:borderw=3:bordercolor=black,"
         f"drawtext=fontfile={font}:text='{right_label}':fontcolor=white:fontsize=64:"
-        f"x=(3*iw/4)-(text_w/2):y=30:borderw=3:bordercolor=black"
+        f"x=(3*w/4)-(text_w/2):y=30:borderw=3:bordercolor=black"
     )
 
-    cmd = ["ffmpeg", "-y", "-i", raw_bg_path, "-vf", vf, final_thumb]
+    cmd = ["ffmpeg", "-y", "-i", raw_bg_path, "-vf", vf, "-update", "1", "-frames:v", "1", final_thumb]
     print("Kapak resmi başlık yazısı ekleniyor...")
     subprocess.run(cmd, check=True, capture_output=True)
     return final_thumb
