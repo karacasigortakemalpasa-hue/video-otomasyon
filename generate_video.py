@@ -73,7 +73,7 @@ def _gemini_generate_image(prompt: str, out_path: str, aspect_ratio: str = "16:9
     if not GEMINI_KEY:
         raise RuntimeError("GEMINI_API_KEY tanımlı değil.")
 
-    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent"
+    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-image:generateContent"
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {"imageConfig": {"aspectRatio": aspect_ratio}},
