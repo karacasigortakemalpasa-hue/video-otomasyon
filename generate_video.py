@@ -147,14 +147,17 @@ def generate_thumbnail(thumb_cfg: dict, reference_image: str = None) -> str:
     font = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 
     vf = (
-        f"drawbox=x=0:y=0:w=iw/2-2:h=120:color={left_color}@0.92:t=fill,"
-        f"drawbox=x=iw/2+2:y=0:w=iw/2-2:h=120:color={right_color}@0.92:t=fill,"
-        f"drawtext=fontfile={font}:text='{left_label}':fontcolor=white:fontsize=64:"
-        f"x=(w/4)-(text_w/2):y=30:borderw=3:bordercolor=black,"
-        f"drawtext=fontfile={font}:text='VS':fontcolor=yellow:fontsize=54:"
-        f"x=(w/2)-(text_w/2):y=30:borderw=3:bordercolor=black,"
-        f"drawtext=fontfile={font}:text='{right_label}':fontcolor=white:fontsize=64:"
-        f"x=(3*w/4)-(text_w/2):y=30:borderw=3:bordercolor=black"
+        f"drawbox=x=0:y=0:w=iw/2-2:h=140:color={left_color}@0.94:t=fill,"
+        f"drawbox=x=iw/2+2:y=0:w=iw/2-2:h=140:color={right_color}@0.94:t=fill,"
+        f"drawtext=fontfile={font}:text='{left_label}':fontcolor=white:fontsize=72:"
+        f"x=(w/4)-(text_w/2):y=35:borderw=4:bordercolor=black,"
+        f"drawtext=fontfile={font}:text='{right_label}':fontcolor=white:fontsize=72:"
+        f"x=(3*w/4)-(text_w/2):y=35:borderw=4:bordercolor=black,"
+        # Ortada buyuk kirmizi ok isareti (iki tarafi karsilastiran gorsel vurgu)
+        f"drawtext=fontfile={font}:text='>>':fontcolor=0xFF2222:fontsize=140:"
+        f"x=(w/2)-(text_w/2):y=(140/2)-(text_h/2)-8:borderw=6:bordercolor=white,"
+        f"drawtext=fontfile={font}:text='VS':fontcolor=yellow:fontsize=40:"
+        f"x=(w/2)-(text_w/2):y=145:borderw=3:bordercolor=black"
     )
 
     cmd = ["ffmpeg", "-y", "-i", raw_bg_path, "-vf", vf, "-update", "1", "-frames:v", "1", final_thumb]
