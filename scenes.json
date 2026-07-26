@@ -5,7 +5,7 @@
     "tags": ["men vs women driving", "driving statistics", "car accidents study", "fun facts", "myth busted"]
   },
   "thumbnail": {
-    "background_prompt": "flat minimalist icon illustration, split screen, left side a simple woman driver icon behind a steering wheel, right side a simple man driver icon behind a steering wheel, two-tone solid color blocks background, clean geometric shapes, no clutter, flat vector icon style, bold simple outlines",
+    "background_prompt": "flat 2D adult animated sitcom style illustration, thick black outlines, muted matte color palette, simple geometric character design with expressive deadpan faces, subtle shading, a man and a woman sitting in a car, split composition, realistic detailed street background",
     "left_label": "WOMEN",
     "right_label": "MEN",
     "left_color": "0xE07A5F",
@@ -13,27 +13,27 @@
   },
   "scenes": [
     {
-      "image_prompt": "flat minimalist icon illustration, two simple person icons (one labeled man, one labeled woman) standing next to two simple car icons, speech bubble icons with question marks above them, solid two-tone color block background, clean geometric shapes, no clutter, flat vector icon style",
+      "image_prompt": "flat 2D adult animated sitcom style illustration, thick black outlines, muted matte color palette, a man and a woman sitting at a bar table arguing playfully with exaggerated deadpan expressions, subtle shading, realistic detailed bar interior background",
       "narration": "Who is actually the better driver, men or women? This debate has been going on forever.",
       "reference_image_url": null
     },
     {
-      "image_prompt": "flat minimalist icon illustration, a simple document icon with bar chart and magnifying glass icon on top, solid color block background, clean geometric shapes, no clutter, flat vector icon style",
+      "image_prompt": "flat 2D adult animated sitcom style illustration, thick black outlines, muted matte color palette, a woman sitting at a kitchen counter reading printed statistics papers with a serious deadpan expression, subtle shading, realistic detailed kitchen background",
       "narration": "So we looked at the actual data from insurance companies and government safety agencies.",
       "reference_image_url": null
     },
     {
-      "image_prompt": "flat minimalist icon illustration, a simple car icon with speed motion lines behind it, a speedometer icon glowing in red, solid color block background, clean geometric shapes, no clutter, flat vector icon style",
+      "image_prompt": "flat 2D adult animated sitcom style illustration, thick black outlines, muted matte color palette, a man driving a car fast with a smug deadpan expression, motion lines behind the car, subtle shading, realistic detailed street background",
       "narration": "Here's the twist: men are involved in about seventy two percent of fatal car crashes.",
       "reference_image_url": null
     },
     {
-      "image_prompt": "flat minimalist icon illustration, a simple car icon parking carefully between two parking line markers, a small dent icon nearby, gentle humor, solid color block background, clean geometric shapes, no clutter, flat vector icon style",
+      "image_prompt": "flat 2D adult animated sitcom style illustration, thick black outlines, muted matte color palette, a woman carefully parking a car with a focused deadpan expression, a small dented car icon nearby, subtle shading, realistic detailed parking lot background",
       "narration": "Women, on the other hand, are slightly more likely to have minor fender-benders, but far less likely to cause serious harm.",
       "reference_image_url": null
     },
     {
-      "image_prompt": "flat minimalist icon illustration, two simple person icons shaking hands, a glowing subscribe bell icon between them, solid color block background, clean geometric shapes, no clutter, flat vector icon style",
+      "image_prompt": "flat 2D adult animated sitcom style illustration, thick black outlines, muted matte color palette, a man and a woman walking together down a street smiling and shaking hands, subtle shading, realistic detailed street background",
       "narration": "So maybe it's not about who's better, but about different habits. If you enjoyed this, hit subscribe for more fact-checked fun!",
       "reference_image_url": null
     }
