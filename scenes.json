@@ -1,10 +1,22 @@
 [
   {
-    "image_prompt": "Wes Anderson style, symmetrical composition, pastel color palette, a human-like cartoonized rabbit wearing a tweed jacket standing in front of a chalkboard, whimsical illustration, highly detailed, sharp focus, professional digital art, 4k",
-    "narration": "Hello, today I want to talk about something interesting."
+    "image_prompt": "flat infographic illustration, historical timeline style, minimal color palette of navy and gold, a crumbling Roman colosseum icon with cracks, clean vector art, educational documentary style, highly detailed, 4k",
+    "narration": "In the year 476 AD, one of history's greatest empires collapsed."
   },
   {
-    "image_prompt": "Wes Anderson style, symmetrical composition, pastel color palette, a classroom full of human-like cartoonized child lions wearing school uniforms sitting at desks, whimsical illustration, highly detailed, sharp focus, professional digital art, 4k",
-    "narration": "Everyone in the classroom was listening carefully."
+    "image_prompt": "flat infographic illustration, historical timeline style, minimal color palette of navy and gold, a map icon of the Roman Empire splitting into fragments, clean vector art, educational documentary style, highly detailed, 4k",
+    "narration": "The Western Roman Empire had been weakening for over a century."
+  },
+  {
+    "image_prompt": "flat infographic illustration, historical timeline style, minimal color palette of navy and gold, an icon of barbarian tribes crossing a river border, clean vector art, educational documentary style, highly detailed, 4k",
+    "narration": "Constant invasions from Germanic tribes drained its resources and army."
+  },
+  {
+    "image_prompt": "flat infographic illustration, historical timeline style, minimal color palette of navy and gold, an icon of a broken Roman coin split in half, clean vector art, educational documentary style, highly detailed, 4k",
+    "narration": "Economic collapse followed, and the empire could no longer pay its soldiers."
+  },
+  {
+    "image_prompt": "flat infographic illustration, historical timeline style, minimal color palette of navy and gold, a silhouette of the last Roman emperor Romulus Augustulus stepping down from a throne, clean vector art, educational documentary style, highly detailed, 4k",
+    "narration": "In the end, the last emperor was quietly deposed, and an era ended forever."
   }
 ]
