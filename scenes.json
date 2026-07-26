@@ -5,7 +5,7 @@
     "tags": ["men vs women driving", "driving statistics", "car accidents study", "fun facts", "myth busted"]
   },
   "thumbnail": {
-    "background_prompt": "flat 2D vector illustration, split screen, on the left a woman driver behind a steering wheel with a calm confident expression, on the right a man driver behind a steering wheel with a confident smirk, minimalist rounded facial features, thin black outlines, cream grid-paper textured background, warm sage-green and terracotta color palette, educational infographic style, high detail, clean iconography, 16:9",
+    "background_prompt": "flat minimalist icon illustration, split screen, left side a simple woman driver icon behind a steering wheel, right side a simple man driver icon behind a steering wheel, two-tone solid color blocks background, clean geometric shapes, no clutter, flat vector icon style, bold simple outlines",
     "left_label": "WOMEN",
     "right_label": "MEN",
     "left_color": "0xE07A5F",
@@ -13,29 +13,29 @@
   },
   "scenes": [
     {
-      "image_prompt": "flat 2D vector illustration, a woman and a man standing next to their cars arguing playfully, pointing at each other, comic exclamation marks above their heads, minimalist rounded facial features, thin black outlines, cream grid-paper textured background, warm sage-green and terracotta color palette, educational infographic style, high detail, 16:9",
+      "image_prompt": "flat minimalist icon illustration, two simple person icons (one labeled man, one labeled woman) standing next to two simple car icons, speech bubble icons with question marks above them, solid two-tone color block background, clean geometric shapes, no clutter, flat vector icon style",
       "narration": "Who is actually the better driver, men or women? This debate has been going on forever.",
-      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+      "reference_image_url": null
     },
     {
-      "image_prompt": "flat 2D vector illustration, a stack of insurance documents and a magnifying glass hovering over statistics charts, minimalist icons, thin black outlines, cream grid-paper textured background, warm sage-green and terracotta color palette, educational infographic style, high detail, 16:9",
+      "image_prompt": "flat minimalist icon illustration, a simple document icon with bar chart and magnifying glass icon on top, solid color block background, clean geometric shapes, no clutter, flat vector icon style",
       "narration": "So we looked at the actual data from insurance companies and government safety agencies.",
       "reference_image_url": null
     },
     {
-      "image_prompt": "flat 2D vector illustration, a man driving fast with speed lines behind the car, a speedometer icon glowing red, minimalist rounded facial features, thin black outlines, cream grid-paper textured background, warm sage-green and terracotta color palette, educational infographic style, high detail, 16:9",
+      "image_prompt": "flat minimalist icon illustration, a simple car icon with speed motion lines behind it, a speedometer icon glowing in red, solid color block background, clean geometric shapes, no clutter, flat vector icon style",
       "narration": "Here's the twist: men are involved in about seventy two percent of fatal car crashes.",
       "reference_image_url": null
     },
     {
-      "image_prompt": "flat 2D vector illustration, a woman parking carefully into a small parking spot with a small dent icon on a nearby car, gentle humor, minimalist rounded facial features, thin black outlines, cream grid-paper textured background, warm sage-green and terracotta color palette, educational infographic style, high detail, 16:9",
+      "image_prompt": "flat minimalist icon illustration, a simple car icon parking carefully between two parking line markers, a small dent icon nearby, gentle humor, solid color block background, clean geometric shapes, no clutter, flat vector icon style",
       "narration": "Women, on the other hand, are slightly more likely to have minor fender-benders, but far less likely to cause serious harm.",
-      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+      "reference_image_url": null
     },
     {
-      "image_prompt": "flat 2D vector illustration, the woman and man now shaking hands and smiling, a big glowing subscribe bell icon between them, minimalist rounded facial features, thin black outlines, cream grid-paper textured background, warm sage-green and terracotta color palette, educational infographic style, high detail, 16:9",
+      "image_prompt": "flat minimalist icon illustration, two simple person icons shaking hands, a glowing subscribe bell icon between them, solid color block background, clean geometric shapes, no clutter, flat vector icon style",
       "narration": "So maybe it's not about who's better, but about different habits. If you enjoyed this, hit subscribe for more fact-checked fun!",
-      "reference_image_url": "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+      "reference_image_url": null
     }
   ]
 }
