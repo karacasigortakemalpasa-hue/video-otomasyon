@@ -131,38 +131,12 @@ def generate_image(prompt: str, index: int, seed: int = 42, reference_image: str
 
 
 def generate_thumbnail(thumb_cfg: dict, reference_image: str = None) -> str:
-    """Kapak resmi: Gemini'den arka plan + ffmpeg ile buyuk baslik yazisi."""
+    """Kapak resmi: Gemini'den baslik/alt baslik yazisi da gomulu sekilde uretilir."""
     bg_prompt = thumb_cfg.get("background_prompt", "")
-    raw_bg_path = os.path.join(OUTPUT_DIR, "thumbnail_bg.jpg")
-
-    print("Kapak resmi arka planı isteniyor...")
-    _gemini_generate_image(bg_prompt, raw_bg_path, reference_image_url=reference_image)
-
-    left_label = thumb_cfg.get("left_label", "MEN")
-    right_label = thumb_cfg.get("right_label", "WOMEN")
-    left_color = thumb_cfg.get("left_color", "0x2E86AB")
-    right_color = thumb_cfg.get("right_color", "0xE07A5F")
-
     final_thumb = os.path.join(OUTPUT_DIR, "thumbnail.jpg")
-    font = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 
-    vf = (
-        f"drawbox=x=0:y=0:w=iw/2-2:h=140:color={left_color}@0.94:t=fill,"
-        f"drawbox=x=iw/2+2:y=0:w=iw/2-2:h=140:color={right_color}@0.94:t=fill,"
-        f"drawtext=fontfile={font}:text='{left_label}':fontcolor=white:fontsize=72:"
-        f"x=(w/4)-(text_w/2):y=35:borderw=4:bordercolor=black,"
-        f"drawtext=fontfile={font}:text='{right_label}':fontcolor=white:fontsize=72:"
-        f"x=(3*w/4)-(text_w/2):y=35:borderw=4:bordercolor=black,"
-        # Ortada buyuk kirmizi ok isareti (iki tarafi karsilastiran gorsel vurgu)
-        f"drawtext=fontfile={font}:text='>>':fontcolor=0xFF2222:fontsize=140:"
-        f"x=(w/2)-(text_w/2):y=(140/2)-(text_h/2)-8:borderw=6:bordercolor=white,"
-        f"drawtext=fontfile={font}:text='VS':fontcolor=yellow:fontsize=40:"
-        f"x=(w/2)-(text_w/2):y=145:borderw=3:bordercolor=black"
-    )
-
-    cmd = ["ffmpeg", "-y", "-i", raw_bg_path, "-vf", vf, "-update", "1", "-frames:v", "1", final_thumb]
-    print("Kapak resmi başlık yazısı ekleniyor...")
-    subprocess.run(cmd, check=True, capture_output=True)
+    print("Kapak resmi (başlıklı) isteniyor...")
+    _gemini_generate_image(bg_prompt, final_thumb, reference_image_url=reference_image)
     return final_thumb
 
 
@@ -349,8 +323,8 @@ Rules:
 - "video_meta.title" is a catchy, clickable YouTube title (under 70 characters).
 - "video_meta.description" is 2-4 sentences plus 3-5 relevant hashtags.
 - "video_meta.tags" is a list of 5-10 relevant keyword tags.
-- "thumbnail.background_prompt" follows the same style guide, depicting a compelling split/comparison scene relevant to the topic.
-- "thumbnail.left_label" and "thumbnail.right_label" are short (1-2 word) punchy labels for a comparison thumbnail relevant to the topic (omit or use generic labels like "MYTH"/"FACT" if the topic isn't a two-sided comparison).
+- "thumbnail.background_prompt" follows this exact pattern: split-screen composition comparing two sides of the topic (e.g. two people, two objects, two outcomes), same monochrome/selective-color/crosshatch style as above, PLUS baked directly into the image: a large bold striking white headline with black outline at the very top asking a punchy question about the topic (e.g. "WHO'S THE REAL ONE?"), and a smaller bold subtitle line below it naming the two sides being compared (e.g. "WOMEN VS MEN"). Always explicitly instruct clean, legible, correctly spelled bold sans-serif text with black outline, one word per line if needed for readability, no distorted or garbled lettering.
+- "thumbnail.left_label" and "thumbnail.right_label" are the two short (1-3 word) side names used in that subtitle line, relevant to the topic.
 - "thumbnail.left_color" and "thumbnail.right_color" are hex-like ffmpeg colors in the form 0xRRGGBB.
 
 Output EXACTLY this JSON schema, nothing else:
