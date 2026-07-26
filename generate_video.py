@@ -68,14 +68,32 @@ def _download(url: str, out_path: str):
 GEMINI_KEY = os.environ.get("GEMINI_API_KEY", "")
 
 
-def _gemini_generate_image(prompt: str, out_path: str, aspect_ratio: str = "16:9"):
-    """Gemini 2.5 Flash Image (Nano Banana) ile gorsel uretir, out_path'e kaydeder."""
+def _gemini_generate_image(prompt: str, out_path: str, aspect_ratio: str = "16:9", reference_image_url: str = None):
+    """Gemini (Nano Banana) ile görsel üretir, isteğe bağlı referans görsel ile, out_path'e kaydeder."""
     if not GEMINI_KEY:
         raise RuntimeError("GEMINI_API_KEY tanımlı değil.")
 
+    parts = []
+
+    if reference_image_url:
+        req_ref = urllib.request.Request(reference_image_url)
+        req_ref.add_header("User-Agent", USER_AGENT)
+        with urllib.request.urlopen(req_ref, timeout=60) as resp:
+            ref_bytes = resp.read()
+        ext = reference_image_url.lower().split(".")[-1]
+        mime = "image/png" if ext == "png" else "image/jpeg"
+        parts.append({
+            "inline_data": {
+                "mime_type": mime,
+                "data": base64.b64encode(ref_bytes).decode("utf-8"),
+            }
+        })
+
+    parts.append({"text": prompt})
+
     url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-image:generateContent"
     payload = {
-        "contents": [{"parts": [{"text": prompt}]}],
+        "contents": [{"parts": parts}],
         "generationConfig": {"imageConfig": {"aspectRatio": aspect_ratio}},
     }
     data = json.dumps(payload).encode("utf-8")
@@ -91,9 +109,9 @@ def _gemini_generate_image(prompt: str, out_path: str, aspect_ratio: str = "16:9
         print(f"GEMINI HATA {e.code}: {body}")
         raise
 
-    parts = result["candidates"][0]["content"]["parts"]
+    parts_out = result["candidates"][0]["content"]["parts"]
     image_b64 = None
-    for part in parts:
+    for part in parts_out:
         if "inlineData" in part:
             image_b64 = part["inlineData"]["data"]
             break
@@ -108,7 +126,7 @@ def generate_image(prompt: str, index: int, seed: int = 42, reference_image: str
     """Gemini (Nano Banana) ile görsel üretir, dosya yolunu döner."""
     out_path = os.path.join(IMG_DIR, f"scene_{index:03d}.jpg")
     print(f"[{index}] Görsel isteniyor: {prompt[:60]}...")
-    _gemini_generate_image(prompt, out_path)
+    _gemini_generate_image(prompt, out_path, reference_image_url=reference_image)
     return out_path
 
 
@@ -118,7 +136,7 @@ def generate_thumbnail(thumb_cfg: dict, reference_image: str = None) -> str:
     raw_bg_path = os.path.join(OUTPUT_DIR, "thumbnail_bg.jpg")
 
     print("Kapak resmi arka planı isteniyor...")
-    _gemini_generate_image(bg_prompt, raw_bg_path)
+    _gemini_generate_image(bg_prompt, raw_bg_path, reference_image_url=reference_image)
 
     left_label = thumb_cfg.get("left_label", "MEN")
     right_label = thumb_cfg.get("right_label", "WOMEN")
