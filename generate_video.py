@@ -65,32 +65,60 @@ def _download(url: str, out_path: str):
         f.write(data)
 
 
-def generate_image(prompt: str, index: int, seed: int = 42, reference_image: str = None) -> str:
-    """Pollinations.ai'dan görsel indirir, dosya yolunu döner."""
-    encoded_prompt = urllib.parse.quote(prompt)
-    url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1280&height=720&seed={seed}&model=flux"
-    if reference_image:
-        url += f"&image={urllib.parse.quote(reference_image)}"
+GEMINI_KEY = os.environ.get("GEMINI_API_KEY", "")
 
+
+def _gemini_generate_image(prompt: str, out_path: str, aspect_ratio: str = "16:9"):
+    """Gemini 2.5 Flash Image (Nano Banana) ile gorsel uretir, out_path'e kaydeder."""
+    if not GEMINI_KEY:
+        raise RuntimeError("GEMINI_API_KEY tanımlı değil.")
+
+    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent"
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {"imageConfig": {"aspectRatio": aspect_ratio}},
+    }
+    data = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(
+        url, data=data,
+        headers={"Content-Type": "application/json", "x-goog-api-key": GEMINI_KEY},
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=120) as resp:
+            result = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8", errors="ignore")
+        print(f"GEMINI HATA {e.code}: {body}")
+        raise
+
+    parts = result["candidates"][0]["content"]["parts"]
+    image_b64 = None
+    for part in parts:
+        if "inlineData" in part:
+            image_b64 = part["inlineData"]["data"]
+            break
+    if not image_b64:
+        raise RuntimeError(f"Gemini yanıtında görsel bulunamadı: {result}")
+
+    with open(out_path, "wb") as f:
+        f.write(base64.b64decode(image_b64))
+
+
+def generate_image(prompt: str, index: int, seed: int = 42, reference_image: str = None) -> str:
+    """Gemini (Nano Banana) ile görsel üretir, dosya yolunu döner."""
     out_path = os.path.join(IMG_DIR, f"scene_{index:03d}.jpg")
     print(f"[{index}] Görsel isteniyor: {prompt[:60]}...")
-    _download(url, out_path)
+    _gemini_generate_image(prompt, out_path)
     return out_path
 
 
 def generate_thumbnail(thumb_cfg: dict, reference_image: str = None) -> str:
-    """Kapak resmi: Pollinations'tan arka plan + ffmpeg ile buyuk baslik yazisi."""
+    """Kapak resmi: Gemini'den arka plan + ffmpeg ile buyuk baslik yazisi."""
     bg_prompt = thumb_cfg.get("background_prompt", "")
-    seed = thumb_cfg.get("seed", 999)
     raw_bg_path = os.path.join(OUTPUT_DIR, "thumbnail_bg.jpg")
 
-    encoded_prompt = urllib.parse.quote(bg_prompt)
-    url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1280&height=720&seed={seed}&model=flux"
-    if reference_image:
-        url += f"&image={urllib.parse.quote(reference_image)}"
-
     print("Kapak resmi arka planı isteniyor...")
-    _download(url, raw_bg_path)
+    _gemini_generate_image(bg_prompt, raw_bg_path)
 
     left_label = thumb_cfg.get("left_label", "MEN")
     right_label = thumb_cfg.get("right_label", "WOMEN")
