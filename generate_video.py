@@ -15,7 +15,6 @@ import urllib.parse
 import urllib.request
 import urllib.error
 
-# --- Ayarlar (ortam değişkenlerinden / GitHub Secrets'tan okunuyor) ---
 POLLINATIONS_KEY = os.environ.get("POLLINATIONS_API_KEY", "")
 GOOGLE_TTS_KEY = os.environ.get("GOOGLE_TTS_API_KEY", "")
 
@@ -31,11 +30,9 @@ for d in (IMG_DIR, AUDIO_DIR, CLIP_DIR):
 def generate_image(prompt: str, index: int, seed: int = 42, reference_image: str = None) -> str:
     """Pollinations.ai'dan görsel indirir, dosya yolunu döner."""
     encoded_prompt = urllib.parse.quote(prompt)
-    url = f"https://gen.pollinations.ai/image/{encoded_prompt}?model=flux&width=1024&height=1024&seed={seed}"
+    url = f"https://image.pollinations.ai/prompt/{encoded_prompt}?width=1024&height=1024&seed={seed}"
     if reference_image:
         url += f"&image={urllib.parse.quote(reference_image)}"
-    if POLLINATIONS_KEY:
-        url += f"&key={urllib.parse.quote(POLLINATIONS_KEY)}"
 
     req = urllib.request.Request(url)
     req.add_header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
@@ -97,7 +94,6 @@ def make_scene_clip(image_path: str, audio_path: str, index: int) -> str:
 
     out_path = os.path.join(CLIP_DIR, f"clip_{index:03d}.mp4")
 
-    # Ken Burns: yavaşça zoom-in, zoompan filtresi ile
     vf = (
         f"scale=2000:2000,"
         f"zoompan=z='min(zoom+0.0007,1.3)':d={total_frames}:s=1280x1280:fps={fps}"
