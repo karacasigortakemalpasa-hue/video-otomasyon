@@ -30,6 +30,7 @@ import sys
 import json
 import base64
 import subprocess
+import time
 import urllib.parse
 import urllib.request
 import urllib.error
@@ -111,13 +112,23 @@ def _gemini_generate_image(prompt: str, out_path: str, aspect_ratio: str = "16:9
         url, data=data,
         headers={"Content-Type": "application/json", "Authorization": f"Bearer {token}"},
     )
-    try:
-        with urllib.request.urlopen(req, timeout=120) as resp:
-            result = json.loads(resp.read().decode("utf-8"))
-    except urllib.error.HTTPError as e:
-        body = e.read().decode("utf-8", errors="ignore")
-        print(f"VERTEX AI HATA {e.code}: {body}")
-        raise
+
+    max_retries = 4
+    result = None
+    for attempt in range(max_retries):
+        try:
+            with urllib.request.urlopen(req, timeout=120) as resp:
+                result = json.loads(resp.read().decode("utf-8"))
+            break
+        except urllib.error.HTTPError as e:
+            body = e.read().decode("utf-8", errors="ignore")
+            if e.code == 429 and attempt < max_retries - 1:
+                wait = 20 * (attempt + 1)
+                print(f"429 (rate limit) alındı, {wait} saniye bekleyip tekrar denenecek...")
+                time.sleep(wait)
+                continue
+            print(f"VERTEX AI HATA {e.code}: {body}")
+            raise
 
     parts_out = result["candidates"][0]["content"]["parts"]
     image_b64 = None
@@ -137,6 +148,7 @@ def generate_image(prompt: str, index: int, seed: int = 42, reference_image: str
     out_path = os.path.join(IMG_DIR, f"scene_{index:03d}.jpg")
     print(f"[{index}] Görsel isteniyor: {prompt[:60]}...")
     _gemini_generate_image(prompt, out_path, reference_image_url=reference_image)
+    time.sleep(3)
     return out_path
 
 
