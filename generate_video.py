@@ -414,12 +414,17 @@ def main():
     clip_paths = []
     thumb_reference = None
     for i, scene in enumerate(scenes, start=1):
+        narration = scene.get("narration", "").strip()
+        if not narration:
+            print(f"[{i}] UYARI: bu sahnede 'narration' eksik/boş, bir önceki cümle tekrar kullanılıyor.")
+            narration = scenes[i - 2].get("narration", "...") if i > 1 else "..."
+
         ref = scene.get("reference_image_url")
         if ref and thumb_reference is None:
             thumb_reference = ref
-        image_path = generate_image(scene["image_prompt"], i, reference_image=ref)
-        audio_path = generate_audio(scene["narration"], i)
-        clip_path = make_scene_clip(image_path, audio_path, i, subtitle_text=scene["narration"])
+        image_path = generate_image(scene.get("image_prompt", ""), i, reference_image=ref)
+        audio_path = generate_audio(narration, i)
+        clip_path = make_scene_clip(image_path, audio_path, i, subtitle_text=narration)
         clip_paths.append(clip_path)
 
     final_video = concat_clips(clip_paths)
