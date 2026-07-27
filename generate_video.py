@@ -94,16 +94,16 @@ def _get_vertex_access_token() -> str:
 
 
 def _gemini_generate_image(prompt: str, out_path: str, aspect_ratio: str = "16:9", reference_image_url: str = None):
-    """Vertex AI (Imagen 4 Fast) ile gorsel uretir - genel Cloud kredisinden dusuyor."""
+    """Vertex AI uzerinden Nano Banana 2 Lite (gemini-3.1-flash-lite-image) ile gorsel uretir - genel Cloud kredisinden duser."""
     token = _get_vertex_access_token()
 
     url = (
         f"https://{GCP_REGION}-aiplatform.googleapis.com/v1/projects/{GCP_PROJECT_ID}"
-        f"/locations/{GCP_REGION}/publishers/google/models/imagen-4.0-fast-generate-001:predict"
+        f"/locations/{GCP_REGION}/publishers/google/models/gemini-3.1-flash-lite-image:generateContent"
     )
     payload = {
-        "instances": [{"prompt": prompt}],
-        "parameters": {"sampleCount": 1, "aspectRatio": aspect_ratio},
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {"imageConfig": {"aspectRatio": aspect_ratio}},
     }
     data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(
@@ -118,11 +118,15 @@ def _gemini_generate_image(prompt: str, out_path: str, aspect_ratio: str = "16:9
         print(f"VERTEX AI HATA {e.code}: {body}")
         raise
 
-    predictions = result.get("predictions", [])
-    if not predictions or "bytesBase64Encoded" not in predictions[0]:
+    parts_out = result["candidates"][0]["content"]["parts"]
+    image_b64 = None
+    for part in parts_out:
+        if "inlineData" in part:
+            image_b64 = part["inlineData"]["data"]
+            break
+    if not image_b64:
         raise RuntimeError(f"Vertex AI yanıtında görsel bulunamadı: {result}")
 
-    image_b64 = predictions[0]["bytesBase64Encoded"]
     with open(out_path, "wb") as f:
         f.write(base64.b64decode(image_b64))
 
