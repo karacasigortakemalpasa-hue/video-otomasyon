@@ -298,16 +298,21 @@ def upload_to_youtube(video_path: str, thumb_path: str, meta: dict):
             "description": meta.get("description", ""),
             "tags": meta.get("tags", []),
             "categoryId": "22",
+            "defaultLanguage": "en",
+            "defaultAudioLanguage": "en",
         },
         "status": {
             "privacyStatus": "private",
             "selfDeclaredMadeForKids": False,
         },
+        "recordingDetails": {
+            "locationDescription": "Canada",
+        },
     }
 
     print("YouTube'a yükleniyor (private/taslak olarak)...")
     media = MediaFileUpload(video_path, chunksize=-1, resumable=True, mimetype="video/mp4")
-    request = youtube.videos().insert(part="snippet,status", body=body, media_body=media)
+    request = youtube.videos().insert(part="snippet,status,recordingDetails", body=body, media_body=media)
     response = request.execute()
     video_id = response["id"]
     print(f"Yüklendi! Video ID: {video_id} (private, izlemek için: https://youtu.be/{video_id})")
@@ -326,27 +331,57 @@ STYLE_GUIDE = """[Masterpiece, Best Quality] A detailed 2D digital illustration,
 
 def expand_topic_to_scenes(topic: str, num_scenes: int = 30) -> dict:
     """Bir konu cumlesini Gemini metin modeliyle tam scenes.json yapisina cevirir."""
-    if not GEMINI_KEY:
-        raise RuntimeError("GEMINI_API_KEY tanımlı değil.")
+    system_prompt = f"""You are a scriptwriter and researcher for a fact-based, slightly cinematic YouTube
+psychology/behavioral-science explainer channel (Canada-based, English audience).
 
-    system_prompt = f"""You are a scriptwriter and art director for a comedic, fact-based YouTube Shorts/explainer channel.
-Given a TOPIC, produce a complete video plan as STRICT JSON (no markdown fences, no commentary, just the JSON object).
+Given a TOPIC (a real psychology/behavioral-science study or phenomenon), produce a complete video plan as
+STRICT JSON (no markdown fences, no commentary, just the JSON object).
 
-Style guide for every image_prompt (always start each image_prompt with this exact style block, then add scene-specific action after it):
+Style guide for every image_prompt (always start each image_prompt with this exact style block, then add
+scene-specific action after it):
 "{STYLE_GUIDE}"
 
 Rules:
-- Tone: humorous, witty, entertaining, but grounded in real, accurate information about the topic. Avoid mean-spirited or offensive stereotypes; keep it lighthearted and fair to all groups mentioned.
+- Tone: intriguing, documentary-style, narratively hooks the viewer early, grounded in real accurate
+  information. Not mean-spirited, fair to everyone involved.
 - Exactly {num_scenes} scenes.
-- Each "narration" is 1-2 short spoken sentences in English, natural conversational tone, building a coherent narrative arc from hook to conclusion.
-- The FIRST scene must be an attention-grabbing hook question or statement about the topic.
-- The LAST scene must include a friendly call to action asking viewers to subscribe and like the video.
-- Each "image_prompt" must describe a specific, concrete visual action/scene (following the style guide above), matching that scene's narration.
+- Each "narration" is 1-2 short spoken sentences in English, natural conversational documentary tone,
+  building a coherent narrative arc: hook -> the experiment/study -> what it found -> the proposed
+  explanation -> whether it holds up today -> a reflective closing question to the viewer.
+- The FIRST scene must open with an intriguing hook about the study/phenomenon, no title card needed.
+- The LAST scene must end with a reflective question inviting viewers to comment their opinion, followed by
+  a brief, natural "Subscribe for more." (not pushy).
+- Each "image_prompt" must describe a specific, concrete visual action/scene (following the style guide
+  above), matching that scene's narration.
 - "video_meta.title" is a catchy, clickable YouTube title (under 70 characters).
-- "video_meta.description" is 2-4 sentences plus 3-5 relevant hashtags.
+- "video_meta.description" MUST follow this exact structure:
+  1. A 2-4 sentence hook paragraph describing the study/experiment and what it revealed, ending with an emoji.
+  2. A blank line, then "In this video:" followed by 4-6 bullet lines, each starting with a relevant emoji,
+     each a short phrase describing a specific beat/moment from the video.
+  3. A blank line, then "📚 SOURCES & IMPORTANT NOTE" header, followed by a real citation of the actual
+     study if you are confident of the real author/year/journal (format: Author(s) (Year). "Title." Journal,
+     volume(issue), pages.) — only include a citation if you are reasonably confident it is accurate; if
+     unsure, omit specific citation details and just describe the study generally. If the finding is known to
+     be contested, failed replication, or debated, add a clear "IMPORTANT:" line noting this honestly, so
+     viewers treat it as an open question rather than settled fact. If the finding is well-replicated and
+     uncontroversial, state that instead.
+  4. A blank line, then a short reflective question inviting comments (e.g. "So what do you think — ...").
+  5. A blank line, then chapter timestamps in the format "00:00 [Chapter Name]" — create 4-6 sensible
+     chapter markers spaced through the video's estimated runtime (assume ~{num_scenes*7} seconds total,
+     roughly 7 seconds per scene).
+  6. A blank line, then 4-6 relevant hashtags starting with #.
 - "video_meta.tags" is a list of 5-10 relevant keyword tags.
-- "thumbnail.background_prompt" follows this exact pattern: split-screen composition comparing two sides of the topic (e.g. two people, two objects, two outcomes), same monochrome/selective-color/crosshatch style as above, PLUS baked directly into the image: a large bold striking white headline with black outline at the very top asking a punchy question about the topic (e.g. "WHO'S THE REAL ONE?"), and a smaller bold subtitle line below it naming the two sides being compared (e.g. "WOMEN VS MEN"). Always explicitly instruct clean, legible, correctly spelled bold sans-serif text with black outline, one word per line if needed for readability, no distorted or garbled lettering.
-- "thumbnail.left_label" and "thumbnail.right_label" are the two short (1-3 word) side names used in that subtitle line, relevant to the topic.
+- "thumbnail.background_prompt" must produce a bold, punchy clickbait-style thumbnail matching this exact
+  recipe: an oversized, bold, heavy sans-serif headline in white with thick black outline, cropped/bleeding
+  off the left and right edges of the frame (so it reads as huge, e.g. only partial letters visible at the
+  edges), directly related to the topic's hook; a hand-drawn-style red comic "impact burst" star-burst shape
+  in the center with the text "VS" inside it in bold white letters if the topic is a comparison, or the
+  study's key contrast if not; a bold red curved motion arrow near the bottom of the frame pointing right;
+  background follows the same monochrome/selective-color/crosshatch illustration style as the episode itself,
+  featuring the two contrasting subjects of the study. Always explicitly instruct clean, legible, correctly
+  spelled bold text, no distorted or garbled lettering.
+- "thumbnail.left_label" and "thumbnail.right_label" are the two short (1-3 word) contrasting sides shown
+  in the thumbnail, relevant to the topic.
 - "thumbnail.left_color" and "thumbnail.right_color" are hex-like ffmpeg colors in the form 0xRRGGBB.
 
 Output EXACTLY this JSON schema, nothing else:
@@ -361,15 +396,20 @@ Output EXACTLY this JSON schema, nothing else:
 TOPIC: {topic}
 """
 
-    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent"
+    token = _get_vertex_access_token()
+    host = "aiplatform.googleapis.com" if GCP_REGION == "global" else f"{GCP_REGION}-aiplatform.googleapis.com"
+    url = (
+        f"https://{host}/v1/projects/{GCP_PROJECT_ID}"
+        f"/locations/{GCP_REGION}/publishers/google/models/gemini-3.5-flash-lite:generateContent"
+    )
     payload = {
-        "contents": [{"parts": [{"text": system_prompt}]}],
+        "contents": [{"role": "user", "parts": [{"text": system_prompt}]}],
         "generationConfig": {"responseMimeType": "application/json"},
     }
     data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(
         url, data=data,
-        headers={"Content-Type": "application/json", "x-goog-api-key": GEMINI_KEY},
+        headers={"Content-Type": "application/json", "Authorization": f"Bearer {token}"},
     )
     print(f"Konu senaryoya çevriliyor: {topic[:60]}...")
     try:
