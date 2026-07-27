@@ -66,58 +66,63 @@ def _download(url: str, out_path: str):
 
 
 GEMINI_KEY = os.environ.get("GEMINI_API_KEY", "")
+GCP_SERVICE_ACCOUNT_JSON = os.environ.get("GCP_SERVICE_ACCOUNT_JSON", "")
+GCP_PROJECT_ID = os.environ.get("GCP_PROJECT_ID", "rosy-embassy-473607-a3")
+GCP_REGION = "us-central1"
+
+_vertex_access_token_cache = {"token": None}
+
+
+def _get_vertex_access_token() -> str:
+    """Servis hesabi JSON'undan Vertex AI icin gecici erisim token'i uretir."""
+    if _vertex_access_token_cache["token"]:
+        return _vertex_access_token_cache["token"]
+
+    if not GCP_SERVICE_ACCOUNT_JSON:
+        raise RuntimeError("GCP_SERVICE_ACCOUNT_JSON tanımlı değil.")
+
+    from google.oauth2 import service_account
+    from google.auth.transport.requests import Request
+
+    info = json.loads(GCP_SERVICE_ACCOUNT_JSON)
+    credentials = service_account.Credentials.from_service_account_info(
+        info, scopes=["https://www.googleapis.com/auth/cloud-platform"]
+    )
+    credentials.refresh(Request())
+    _vertex_access_token_cache["token"] = credentials.token
+    return credentials.token
 
 
 def _gemini_generate_image(prompt: str, out_path: str, aspect_ratio: str = "16:9", reference_image_url: str = None):
-    """Gemini (Nano Banana) ile görsel üretir, isteğe bağlı referans görsel ile, out_path'e kaydeder."""
-    if not GEMINI_KEY:
-        raise RuntimeError("GEMINI_API_KEY tanımlı değil.")
+    """Vertex AI (Imagen 4 Fast) ile gorsel uretir - genel Cloud kredisinden dusuyor."""
+    token = _get_vertex_access_token()
 
-    parts = []
-
-    if reference_image_url:
-        req_ref = urllib.request.Request(reference_image_url)
-        req_ref.add_header("User-Agent", USER_AGENT)
-        with urllib.request.urlopen(req_ref, timeout=60) as resp:
-            ref_bytes = resp.read()
-        ext = reference_image_url.lower().split(".")[-1]
-        mime = "image/png" if ext == "png" else "image/jpeg"
-        parts.append({
-            "inline_data": {
-                "mime_type": mime,
-                "data": base64.b64encode(ref_bytes).decode("utf-8"),
-            }
-        })
-
-    parts.append({"text": prompt})
-
-    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent"
+    url = (
+        f"https://{GCP_REGION}-aiplatform.googleapis.com/v1/projects/{GCP_PROJECT_ID}"
+        f"/locations/{GCP_REGION}/publishers/google/models/imagen-4.0-fast-generate-001:predict"
+    )
     payload = {
-        "contents": [{"parts": parts}],
-        "generationConfig": {"imageConfig": {"aspectRatio": aspect_ratio}},
+        "instances": [{"prompt": prompt}],
+        "parameters": {"sampleCount": 1, "aspectRatio": aspect_ratio},
     }
     data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(
         url, data=data,
-        headers={"Content-Type": "application/json", "x-goog-api-key": GEMINI_KEY},
+        headers={"Content-Type": "application/json", "Authorization": f"Bearer {token}"},
     )
     try:
         with urllib.request.urlopen(req, timeout=120) as resp:
             result = json.loads(resp.read().decode("utf-8"))
     except urllib.error.HTTPError as e:
         body = e.read().decode("utf-8", errors="ignore")
-        print(f"GEMINI HATA {e.code}: {body}")
+        print(f"VERTEX AI HATA {e.code}: {body}")
         raise
 
-    parts_out = result["candidates"][0]["content"]["parts"]
-    image_b64 = None
-    for part in parts_out:
-        if "inlineData" in part:
-            image_b64 = part["inlineData"]["data"]
-            break
-    if not image_b64:
-        raise RuntimeError(f"Gemini yanıtında görsel bulunamadı: {result}")
+    predictions = result.get("predictions", [])
+    if not predictions or "bytesBase64Encoded" not in predictions[0]:
+        raise RuntimeError(f"Vertex AI yanıtında görsel bulunamadı: {result}")
 
+    image_b64 = predictions[0]["bytesBase64Encoded"]
     with open(out_path, "wb") as f:
         f.write(base64.b64decode(image_b64))
 

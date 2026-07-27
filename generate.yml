@@ -3,9 +3,9 @@ name: Video Uret
 on:
   workflow_dispatch:
   schedule:
-    # Her gun Turkiye saatiyle 18:00 (UTC 15:00) calisir. Saati degistirmek icin
-    # asagidaki '0 15 * * *' kismini duzenle (UTC saat * gun format).
-    - cron: '0 15 * * *'
+    # Her gun Turkiye saatiyle 23:00 (UTC 20:00) calisir. Saati degistirmek icin
+    # asagidaki '0 20 * * *' kismini duzenle (UTC saat * gun format).
+    - cron: '0 20 * * *'
 
 permissions:
   contents: write
@@ -46,6 +46,7 @@ jobs:
         if: steps.pick.outputs.found == 'true'
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
           POLLINATIONS_API_KEY: ${{ secrets.POLLINATIONS_API_KEY }}
           GOOGLE_TTS_API_KEY: ${{ secrets.GOOGLE_TTS_API_KEY }}
           YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
