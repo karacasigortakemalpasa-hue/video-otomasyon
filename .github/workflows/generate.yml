@@ -70,6 +70,6 @@ jobs:
           mv "${{ steps.pick.outputs.file }}" queue/done/
           git config user.name "video-otomasyon-bot"
           git config user.email "actions@github.com"
-          git add -A
+          git add queue/
           git commit -m "Islendi: $(basename ${{ steps.pick.outputs.file }})"
           git push
