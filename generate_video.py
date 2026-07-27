@@ -68,7 +68,7 @@ def _download(url: str, out_path: str):
 GEMINI_KEY = os.environ.get("GEMINI_API_KEY", "")
 GCP_SERVICE_ACCOUNT_JSON = os.environ.get("GCP_SERVICE_ACCOUNT_JSON", "")
 GCP_PROJECT_ID = os.environ.get("GCP_PROJECT_ID", "rosy-embassy-473607-a3")
-GCP_REGION = "us-central1"
+GCP_REGION = "global"
 
 _vertex_access_token_cache = {"token": None}
 
@@ -97,8 +97,9 @@ def _gemini_generate_image(prompt: str, out_path: str, aspect_ratio: str = "16:9
     """Vertex AI uzerinden Nano Banana 2 Lite (gemini-3.1-flash-lite-image) ile gorsel uretir - genel Cloud kredisinden duser."""
     token = _get_vertex_access_token()
 
+    host = "aiplatform.googleapis.com" if GCP_REGION == "global" else f"{GCP_REGION}-aiplatform.googleapis.com"
     url = (
-        f"https://{GCP_REGION}-aiplatform.googleapis.com/v1/projects/{GCP_PROJECT_ID}"
+        f"https://{host}/v1/projects/{GCP_PROJECT_ID}"
         f"/locations/{GCP_REGION}/publishers/google/models/gemini-3.1-flash-lite-image:generateContent"
     )
     payload = {
