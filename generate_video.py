@@ -219,9 +219,9 @@ def make_scene_clip(image_path: str, audio_path: str, index: int, subtitle_text:
     out_path = os.path.join(CLIP_DIR, f"clip_{index:03d}.mp4")
 
     vf_parts = [
-        "scale=1600:900:force_original_aspect_ratio=increase",
-        "crop=1600:900",
-        f"zoompan=z='min(zoom+0.0007,1.3)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={total_frames}:s=1280x720:fps={fps}",
+        "scale=2400:1350:force_original_aspect_ratio=increase",
+        "crop=2400:1350",
+        f"zoompan=z='min(zoom+0.0006,1.25)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={total_frames}:s=1920x1080:fps={fps}",
     ]
 
     if subtitle_text:
@@ -241,8 +241,8 @@ def make_scene_clip(image_path: str, audio_path: str, index: int, subtitle_text:
         "-loop", "1", "-i", image_path,
         "-i", audio_path,
         "-vf", vf,
-        "-c:v", "libx264", "-pix_fmt", "yuv420p",
-        "-c:a", "aac",
+        "-c:v", "libx264", "-preset", "slow", "-crf", "18", "-pix_fmt", "yuv420p",
+        "-c:a", "aac", "-b:a", "192k",
         "-shortest",
         "-t", str(duration),
         out_path,
