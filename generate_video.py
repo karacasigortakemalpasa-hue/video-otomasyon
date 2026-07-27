@@ -103,7 +103,7 @@ def _gemini_generate_image(prompt: str, out_path: str, aspect_ratio: str = "16:9
         f"/locations/{GCP_REGION}/publishers/google/models/gemini-3.1-flash-lite-image:generateContent"
     )
     payload = {
-        "contents": [{"parts": [{"text": prompt}]}],
+        "contents": [{"role": "user", "parts": [{"text": prompt}]}],
         "generationConfig": {"imageConfig": {"aspectRatio": aspect_ratio}},
     }
     data = json.dumps(payload).encode("utf-8")
