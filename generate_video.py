@@ -390,6 +390,10 @@ Rules:
   "thumbnail.right_label" is always a short (1-2 word) label for the man's side (e.g. "MEN").
 - "thumbnail.left_color" and "thumbnail.right_color" are hex-like ffmpeg colors in the form 0xRRGGBB.
 
+CRITICAL: The output must be STRICTLY VALID, parseable JSON. Any double-quote characters that appear inside
+a string value (for example around a study or journal title in the citation) MUST be escaped as \". Do not
+use unescaped straight quotes inside string values. Do not include trailing commas.
+
 Output EXACTLY this JSON schema, nothing else:
 {{
   "video_meta": {{"title": "...", "description": "...", "tags": ["...", "..."]}},
@@ -418,21 +422,33 @@ TOPIC: {topic}
         headers={"Content-Type": "application/json", "Authorization": f"Bearer {token}"},
     )
     print(f"Konu senaryoya çevriliyor: {topic[:60]}...")
-    try:
-        with urllib.request.urlopen(req, timeout=180) as resp:
-            result = json.loads(resp.read().decode("utf-8"))
-    except urllib.error.HTTPError as e:
-        body = e.read().decode("utf-8", errors="ignore")
-        print(f"GEMINI METIN HATA {e.code}: {body}")
-        raise
 
-    text_out = result["candidates"][0]["content"]["parts"][0]["text"]
-    text_out = text_out.strip()
-    if text_out.startswith("```"):
-        text_out = text_out.split("```")[1]
-        if text_out.startswith("json"):
-            text_out = text_out[4:]
-    config = json.loads(text_out)
+    max_attempts = 3
+    config = None
+    for attempt in range(max_attempts):
+        try:
+            with urllib.request.urlopen(req, timeout=180) as resp:
+                result = json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            body = e.read().decode("utf-8", errors="ignore")
+            print(f"GEMINI METIN HATA {e.code}: {body}")
+            raise
+
+        text_out = result["candidates"][0]["content"]["parts"][0]["text"]
+        text_out = text_out.strip()
+        if text_out.startswith("```"):
+            text_out = text_out.split("```")[1]
+            if text_out.startswith("json"):
+                text_out = text_out[4:]
+
+        try:
+            config = json.loads(text_out)
+            break
+        except json.JSONDecodeError as e:
+            print(f"Senaryo JSON'u bozuk geldi (deneme {attempt + 1}/{max_attempts}): {e}")
+            if attempt == max_attempts - 1:
+                raise
+            continue
 
     for scene in config["scenes"]:
         scene["reference_image_url"] = REFERENCE_IMAGE_URL
