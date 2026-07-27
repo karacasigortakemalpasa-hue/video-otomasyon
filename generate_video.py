@@ -345,14 +345,20 @@ Rules:
 - Tone: intriguing, documentary-style, narratively hooks the viewer early, grounded in real accurate
   information. Not mean-spirited, fair to everyone involved.
 - Exactly {num_scenes} scenes.
+- CRITICAL BALANCE RULE: this is a MEN VS WOMEN comparison video. Across the scenes, you must give
+  genuinely balanced screen time and narration to BOTH sides — describe what the research shows about women
+  in some scenes AND what it shows about men in other scenes, back and forth, not just one side with the
+  other barely mentioned. Roughly half the image_prompts should feature a woman as the visual subject and
+  roughly half should feature a man, alternating naturally as the narration discusses each side's data point.
 - Each "narration" is 1-2 short spoken sentences in English, natural conversational documentary tone,
-  building a coherent narrative arc: hook -> the experiment/study -> what it found -> the proposed
-  explanation -> whether it holds up today -> a reflective closing question to the viewer.
-- The FIRST scene must open with an intriguing hook about the study/phenomenon, no title card needed.
+  building a coherent narrative arc: hook -> the research on one side -> the research on the other side ->
+  what the comparison reveals -> the explanation -> whether it holds up today -> a reflective closing question.
+- The FIRST scene must open with an intriguing hook about the comparison, no title card needed.
 - The LAST scene must end with a reflective question inviting viewers to comment their opinion, followed by
   a brief, natural "Subscribe for more." (not pushy).
 - Each "image_prompt" must describe a specific, concrete visual action/scene (following the style guide
-  above), matching that scene's narration.
+  above) featuring either the woman or the man as the subject (alternating per the balance rule), matching
+  that scene's narration.
 - "video_meta.title" is a catchy, clickable YouTube title (under 70 characters).
 - "video_meta.description" MUST follow this exact structure:
   1. A 2-4 sentence hook paragraph describing the study/experiment and what it revealed, ending with an emoji.
@@ -371,17 +377,17 @@ Rules:
      roughly 7 seconds per scene).
   6. A blank line, then 4-6 relevant hashtags starting with #.
 - "video_meta.tags" is a list of 5-10 relevant keyword tags.
-- "thumbnail.background_prompt" must produce a bold, punchy clickbait-style thumbnail matching this exact
-  recipe: an oversized, bold, heavy sans-serif headline in white with thick black outline, cropped/bleeding
-  off the left and right edges of the frame (so it reads as huge, e.g. only partial letters visible at the
-  edges), directly related to the topic's hook; a hand-drawn-style red comic "impact burst" star-burst shape
-  in the center with the text "VS" inside it in bold white letters if the topic is a comparison, or the
-  study's key contrast if not; a bold red curved motion arrow near the bottom of the frame pointing right;
-  background follows the same monochrome/selective-color/crosshatch illustration style as the episode itself,
-  featuring the two contrasting subjects of the study. Always explicitly instruct clean, legible, correctly
+- "thumbnail.background_prompt" must produce a clean, bold, punchy clickbait-style thumbnail matching this
+  exact recipe: split visual composition with a woman clearly on the LEFT side of the frame and a man clearly
+  on the RIGHT side of the frame, both relevant to the topic; an oversized, bold, heavy sans-serif headline
+  in white with thick black outline at the top of the frame, directly related to the topic's hook, cropped
+  tight so it reads as huge; a bold red comic "impact burst" star-burst shape in the center with the text
+  "VS" inside it in bold white letters; background follows the same monochrome/selective-color/crosshatch
+  illustration style as the episode itself. Do NOT include any arrow, motion line, or directional graphic —
+  only the headline text and the central VS burst. Always explicitly instruct clean, legible, correctly
   spelled bold text, no distorted or garbled lettering.
-- "thumbnail.left_label" and "thumbnail.right_label" are the two short (1-3 word) contrasting sides shown
-  in the thumbnail, relevant to the topic.
+- "thumbnail.left_label" is always a short (1-2 word) label for the woman's side (e.g. "WOMEN"), and
+  "thumbnail.right_label" is always a short (1-2 word) label for the man's side (e.g. "MEN").
 - "thumbnail.left_color" and "thumbnail.right_color" are hex-like ffmpeg colors in the form 0xRRGGBB.
 
 Output EXACTLY this JSON schema, nothing else:
