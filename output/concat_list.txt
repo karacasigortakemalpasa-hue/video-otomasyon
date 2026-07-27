@@ -27,4 +27,3 @@ file '/home/runner/work/video-otomasyon/video-otomasyon/output/clips/clip_026.mp
 file '/home/runner/work/video-otomasyon/video-otomasyon/output/clips/clip_027.mp4'
 file '/home/runner/work/video-otomasyon/video-otomasyon/output/clips/clip_028.mp4'
 file '/home/runner/work/video-otomasyon/video-otomasyon/output/clips/clip_029.mp4'
-file '/home/runner/work/video-otomasyon/video-otomasyon/output/clips/clip_030.mp4'
