@@ -72,5 +72,6 @@ jobs:
           git config user.email "actions@github.com"
           git add queue/
           git commit -m "Islendi: $(basename ${{ steps.pick.outputs.file }})"
+          git checkout -- .
           git pull --rebase origin main
           git push
