@@ -113,7 +113,7 @@ def _gemini_generate_image(prompt: str, out_path: str, aspect_ratio: str = "16:9
         headers={"Content-Type": "application/json", "Authorization": f"Bearer {token}"},
     )
 
-    max_retries = 4
+    max_retries = 6
     result = None
     for attempt in range(max_retries):
         try:
@@ -122,8 +122,8 @@ def _gemini_generate_image(prompt: str, out_path: str, aspect_ratio: str = "16:9
             break
         except urllib.error.HTTPError as e:
             body = e.read().decode("utf-8", errors="ignore")
-            if e.code == 429 and attempt < max_retries - 1:
-                wait = 20 * (attempt + 1)
+            if e.code in (429, 503) and attempt < max_retries - 1:
+                wait = 30 * (attempt + 1)
                 print(f"429 (rate limit) alındı, {wait} saniye bekleyip tekrar denenecek...")
                 time.sleep(wait)
                 continue
@@ -148,7 +148,7 @@ def generate_image(prompt: str, index: int, seed: int = 42, reference_image: str
     out_path = os.path.join(IMG_DIR, f"scene_{index:03d}.jpg")
     print(f"[{index}] Görsel isteniyor: {prompt[:60]}...")
     _gemini_generate_image(prompt, out_path, reference_image_url=reference_image)
-    time.sleep(3)
+    time.sleep(8)
     return out_path
 
 
@@ -484,10 +484,18 @@ def main():
         ref = scene.get("reference_image_url")
         if ref and thumb_reference is None:
             thumb_reference = ref
-        image_path = generate_image(scene.get("image_prompt", ""), i, reference_image=ref)
-        audio_path = generate_audio(narration, i)
-        clip_path = make_scene_clip(image_path, audio_path, i, subtitle_text=narration)
-        clip_paths.append(clip_path)
+
+        try:
+            image_path = generate_image(scene.get("image_prompt", ""), i, reference_image=ref)
+            audio_path = generate_audio(narration, i)
+            clip_path = make_scene_clip(image_path, audio_path, i, subtitle_text=narration)
+            clip_paths.append(clip_path)
+        except Exception as e:
+            print(f"[{i}] SAHNE ATLANDI (tekrar denemelere rağmen başarısız oldu): {e}")
+            continue
+
+    if not clip_paths:
+        raise RuntimeError("Hiçbir sahne üretilemedi, video oluşturulamıyor.")
 
     final_video = concat_clips(clip_paths)
 
