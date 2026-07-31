@@ -94,8 +94,9 @@ def _get_vertex_access_token() -> str:
     return credentials.token
 
 
-def _gemini_generate_image(prompt: str, out_path: str, aspect_ratio: str = "16:9", reference_image_url: str = None):
-    """Vertex AI uzerinden Nano Banana 2 Lite (gemini-3.1-flash-lite-image) ile gorsel uretir - genel Cloud kredisinden duser."""
+def _gemini_generate_image(prompt: str, out_path: str, aspect_ratio: str = "16:9", reference_image_url=None):
+    """Vertex AI uzerinden Nano Banana 2 Lite (gemini-3.1-flash-lite-image) ile gorsel uretir - genel Cloud kredisinden duser.
+    reference_image_url: tek bir URL string'i ya da birden fazla URL iceren bir liste olabilir."""
     token = _get_vertex_access_token()
 
     host = "aiplatform.googleapis.com" if GCP_REGION == "global" else f"{GCP_REGION}-aiplatform.googleapis.com"
@@ -103,8 +104,33 @@ def _gemini_generate_image(prompt: str, out_path: str, aspect_ratio: str = "16:9
         f"https://{host}/v1/projects/{GCP_PROJECT_ID}"
         f"/locations/{GCP_REGION}/publishers/google/models/gemini-3.1-flash-lite-image:generateContent"
     )
+
+    ref_urls = []
+    if reference_image_url:
+        ref_urls = reference_image_url if isinstance(reference_image_url, list) else [reference_image_url]
+
+    parts = []
+    for ref_url in ref_urls:
+        try:
+            req_ref = urllib.request.Request(ref_url)
+            req_ref.add_header("User-Agent", USER_AGENT)
+            with urllib.request.urlopen(req_ref, timeout=60) as resp:
+                ref_bytes = resp.read()
+            ext = ref_url.lower().split(".")[-1]
+            mime = "image/png" if ext == "png" else "image/jpeg"
+            parts.append({
+                "inline_data": {
+                    "mime_type": mime,
+                    "data": base64.b64encode(ref_bytes).decode("utf-8"),
+                }
+            })
+        except Exception as e:
+            print(f"UYARI: referans görsel indirilemedi ({ref_url}): {e}")
+
+    parts.append({"text": prompt})
+
     payload = {
-        "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+        "contents": [{"role": "user", "parts": parts}],
         "generationConfig": {"imageConfig": {"aspectRatio": aspect_ratio}},
     }
     data = json.dumps(payload).encode("utf-8")
@@ -324,7 +350,9 @@ def upload_to_youtube(video_path: str, thumb_path: str, meta: dict):
     return video_id
 
 
-REFERENCE_IMAGE_URL = "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/reference.jpg"
+WOMAN_REFERENCE_URL = "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/woman_mascot.jpg"
+MAN_REFERENCE_URL = "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/man_mascot.jpg"
+THUMBNAIL_LOGO_REFERENCE_URL = "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/thumbnail_logo_template.jpg"
 
 STYLE_GUIDE = """[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines."""
 
@@ -350,6 +378,11 @@ Rules:
   in some scenes AND what it shows about men in other scenes, back and forth, not just one side with the
   other barely mentioned. Roughly half the image_prompts should feature a woman as the visual subject and
   roughly half should feature a man, alternating naturally as the narration discusses each side's data point.
+- Every scene object must include a "subject" field: exactly "woman" or "man", matching which one appears in
+  that scene's image_prompt. This channel uses a FIXED recurring mascot character for each: a consistent
+  woman character and a consistent man character appear in every episode (their exact look is supplied
+  separately via a reference image, so your image_prompt does not need to redescribe their face/hair/clothing
+  in detail — just describe their pose, expression, action, and the setting for that scene).
 - Each "narration" is 1-2 short spoken sentences in English, natural conversational documentary tone,
   building a coherent narrative arc: hook -> the research on one side -> the research on the other side ->
   what the comparison reveals -> the explanation -> whether it holds up today -> a reflective closing question.
@@ -377,15 +410,17 @@ Rules:
      roughly 7 seconds per scene).
   6. A blank line, then 4-6 relevant hashtags starting with #.
 - "video_meta.tags" is a list of 5-10 relevant keyword tags.
-- "thumbnail.background_prompt" must produce a clean, bold, punchy clickbait-style thumbnail matching this
-  exact recipe: split visual composition with a woman clearly on the LEFT side of the frame and a man clearly
-  on the RIGHT side of the frame, both relevant to the topic; an oversized, bold, heavy sans-serif headline
-  in white with thick black outline at the top of the frame, directly related to the topic's hook, cropped
-  tight so it reads as huge; a bold red comic "impact burst" star-burst shape in the center with the text
-  "VS" inside it in bold white letters; background follows the same monochrome/selective-color/crosshatch
-  illustration style as the episode itself. Do NOT include any arrow, motion line, or directional graphic —
-  only the headline text and the central VS burst. Always explicitly instruct clean, legible, correctly
-  spelled bold text, no distorted or garbled lettering.
+- "thumbnail.background_prompt" must produce a clean, bold, punchy clickbait-style thumbnail. Three reference
+  images are supplied: (1) the channel's recurring woman mascot character, (2) the recurring man mascot
+  character, (3) an exact template showing the required logo/title-text style and the "VS" badge design.
+  Compose the thumbnail with the woman mascot clearly on the LEFT side of the frame and the man mascot clearly
+  on the RIGHT side of the frame (match their appearance exactly as shown in their reference images — do not
+  redescribe their look, just describe their pose/expression relevant to this episode's topic). Reproduce the
+  headline text banner and "VS" badge in the exact same font, color, and layout style shown in the third
+  (logo/template) reference image, but change the actual headline wording to match this specific episode's
+  hook. Background follows the same monochrome/selective-color/crosshatch illustration style as the episode
+  itself. Always explicitly instruct clean, legible, correctly spelled bold text, no distorted or garbled
+  lettering.
 - "thumbnail.left_label" is always a short (1-2 word) label for the woman's side (e.g. "WOMEN"), and
   "thumbnail.right_label" is always a short (1-2 word) label for the man's side (e.g. "MEN").
 - "thumbnail.left_color" and "thumbnail.right_color" are hex-like ffmpeg colors in the form 0xRRGGBB.
@@ -399,7 +434,7 @@ Output EXACTLY this JSON schema, nothing else:
   "video_meta": {{"title": "...", "description": "...", "tags": ["...", "..."]}},
   "thumbnail": {{"background_prompt": "...", "left_label": "...", "right_label": "...", "left_color": "0x2E86AB", "right_color": "0xE07A5F"}},
   "scenes": [
-    {{"image_prompt": "...", "narration": "..."}}
+    {{"image_prompt": "...", "narration": "...", "subject": "woman"}}
   ]
 }}
 
@@ -451,7 +486,8 @@ TOPIC: {topic}
             continue
 
     for scene in config["scenes"]:
-        scene["reference_image_url"] = REFERENCE_IMAGE_URL
+        subject = scene.get("subject", "").lower()
+        scene["reference_image_url"] = MAN_REFERENCE_URL if subject == "man" else WOMAN_REFERENCE_URL
 
     return config
 
@@ -474,7 +510,6 @@ def main():
     thumb_cfg = config.get("thumbnail", {})
 
     clip_paths = []
-    thumb_reference = None
     for i, scene in enumerate(scenes, start=1):
         narration = scene.get("narration", "").strip()
         if not narration:
@@ -482,8 +517,6 @@ def main():
             narration = scenes[i - 2].get("narration", "...") if i > 1 else "..."
 
         ref = scene.get("reference_image_url")
-        if ref and thumb_reference is None:
-            thumb_reference = ref
 
         try:
             image_path = generate_image(scene.get("image_prompt", ""), i, reference_image=ref)
@@ -501,7 +534,7 @@ def main():
 
     thumb_path = None
     if thumb_cfg.get("background_prompt"):
-        thumb_path = generate_thumbnail(thumb_cfg, reference_image=thumb_reference)
+        thumb_path = generate_thumbnail(thumb_cfg, reference_image=[WOMAN_REFERENCE_URL, MAN_REFERENCE_URL, THUMBNAIL_LOGO_REFERENCE_URL])
 
     print(f"\nBitti! Video hazır: {final_video}")
     if thumb_path:
