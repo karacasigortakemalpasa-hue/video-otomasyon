@@ -178,13 +178,76 @@ def generate_image(prompt: str, index: int, seed: int = 42, reference_image: str
     return out_path
 
 
-def generate_thumbnail(thumb_cfg: dict, reference_image: str = None) -> str:
-    """Kapak resmi: Gemini'den baslik/alt baslik yazisi da gomulu sekilde uretilir."""
-    bg_prompt = thumb_cfg.get("background_prompt", "")
-    final_thumb = os.path.join(OUTPUT_DIR, "thumbnail.jpg")
+def wrap_text(text: str, max_chars: int = 42) -> str:
+    """Uzun cümleyi ekrana sığacak şekilde birden fazla satıra böler."""
+    words = text.split()
+    lines, current = [], ""
+    for word in words:
+        candidate = (current + " " + word).strip()
+        if len(candidate) > max_chars and current:
+            lines.append(current)
+            current = word
+        else:
+            current = candidate
+    if current:
+        lines.append(current)
+    return "\n".join(lines)
 
-    print("Kapak resmi (başlıklı) isteniyor...")
-    _gemini_generate_image(bg_prompt, final_thumb, reference_image_url=reference_image)
+
+def generate_thumbnail(thumb_cfg: dict, meta: dict = None) -> str:
+    """Kapak resmi: kadin ve erkek karakter AYRI AYRI (tek referansla, daha guvenilir) uretilir,
+    beyaz zemine yerlestirilir, baslik yazisi ve VS amblemi ffmpeg ile garantili sekilde eklenir."""
+    left_prompt = thumb_cfg.get("left_pose_prompt", "standing confidently, plain white background")
+    right_prompt = thumb_cfg.get("right_pose_prompt", "standing confidently, plain white background")
+    headline = thumb_cfg.get("headline_text") or (meta or {}).get("title", "")
+    left_label = thumb_cfg.get("left_label", "WOMEN")
+    right_label = thumb_cfg.get("right_label", "MEN")
+
+    style_note = ("Simple flat 2D digital illustration character, clean line-work, plain solid white "
+                  "background, no scenery, no shadow, full body or waist-up, facing forward or "
+                  "three-quarter angle. ")
+
+    left_img = os.path.join(OUTPUT_DIR, "thumb_left.jpg")
+    right_img = os.path.join(OUTPUT_DIR, "thumb_right.jpg")
+
+    print("Kapak için kadın karakter üretiliyor...")
+    _gemini_generate_image(style_note + left_prompt, left_img, aspect_ratio="3:4", reference_image_url=WOMAN_REFERENCE_URL)
+    print("Kapak için erkek karakter üretiliyor...")
+    _gemini_generate_image(style_note + right_prompt, right_img, aspect_ratio="3:4", reference_image_url=MAN_REFERENCE_URL)
+
+    final_thumb = os.path.join(OUTPUT_DIR, "thumbnail.jpg")
+    font = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+    safe_headline = wrap_text(headline, max_chars=28).replace("'", "\u2019").replace(":", "\\:").replace(",", "\\,")
+
+    # 1280x720 beyaz zemin, sol yariya kadin, sag yariya erkek, ustte baslik, ortada VS amblemi
+    filter_complex = (
+        "color=c=white:s=1280x720[bg];"
+        "[1:v]scale=620:-1[l];"
+        "[2:v]scale=620:-1[r];"
+        "[bg][l]overlay=x=10:y=180[bg1];"
+        "[bg1][r]overlay=x=650:y=180[bg2];"
+        f"[bg2]drawtext=fontfile={font}:text='{safe_headline}':fontcolor=black:fontsize=54:"
+        "borderw=0:x=(w-text_w)/2:y=20:line_spacing=6,"
+        f"drawtext=fontfile={font}:text='{left_label}':fontcolor=0xE07A5F:fontsize=34:"
+        "borderw=2:bordercolor=black:x=180-text_w/2:y=150,"
+        f"drawtext=fontfile={font}:text='{right_label}':fontcolor=0x2E86AB:fontsize=34:"
+        "borderw=2:bordercolor=black:x=1100-text_w/2:y=150,"
+        f"drawtext=fontfile={font}:text='VS':fontcolor=0xFF2222:fontsize=90:"
+        "borderw=6:bordercolor=white:x=(w-text_w)/2:y=(h-text_h)/2+60[out]"
+    )
+
+    cmd = [
+        "ffmpeg", "-y",
+        "-f", "lavfi", "-i", "color=c=white:s=1280x720",
+        "-i", left_img,
+        "-i", right_img,
+        "-filter_complex", filter_complex,
+        "-map", "[out]",
+        "-frames:v", "1", "-update", "1",
+        final_thumb,
+    ]
+    print("Kapak birleştiriliyor (yazı/amblem garantili şekilde ekleniyor)...")
+    subprocess.run(cmd, check=True, capture_output=True)
     return final_thumb
 
 
@@ -218,22 +281,6 @@ def get_audio_duration(path: str) -> float:
     cmd = ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", path]
     result = subprocess.run(cmd, capture_output=True, text=True, check=True)
     return float(result.stdout.strip())
-
-
-def wrap_text(text: str, max_chars: int = 42) -> str:
-    """Uzun cümleyi ekrana sığacak şekilde birden fazla satıra böler."""
-    words = text.split()
-    lines, current = [], ""
-    for word in words:
-        candidate = (current + " " + word).strip()
-        if len(candidate) > max_chars and current:
-            lines.append(current)
-            current = word
-        else:
-            current = candidate
-    if current:
-        lines.append(current)
-    return "\n".join(lines)
 
 
 def make_scene_clip(image_path: str, audio_path: str, index: int, subtitle_text: str = "") -> str:
@@ -352,7 +399,6 @@ def upload_to_youtube(video_path: str, thumb_path: str, meta: dict):
 
 WOMAN_REFERENCE_URL = "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/woman_mascot.jpg"
 MAN_REFERENCE_URL = "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/man_mascot.jpg"
-THUMBNAIL_LOGO_REFERENCE_URL = "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/thumbnail_logo_template.jpg"
 
 STYLE_GUIDE = """[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines."""
 
@@ -410,20 +456,15 @@ Rules:
      roughly 7 seconds per scene).
   6. A blank line, then 4-6 relevant hashtags starting with #.
 - "video_meta.tags" is a list of 5-10 relevant keyword tags.
-- "thumbnail.background_prompt" must produce a clean, bold, punchy clickbait-style thumbnail. Three reference
-  images are supplied: (1) the channel's recurring woman mascot character, (2) the recurring man mascot
-  character, (3) an exact template showing the required logo/title-text style and the "VS" badge design.
-  Compose the thumbnail with the woman mascot clearly on the LEFT side of the frame and the man mascot clearly
-  on the RIGHT side of the frame (match their appearance exactly as shown in their reference images — do not
-  redescribe their look, just describe their pose/expression relevant to this episode's topic). Reproduce the
-  headline text banner and "VS" badge in the exact same font, color, and layout style shown in the third
-  (logo/template) reference image, but change the actual headline wording to match this specific episode's
-  hook. Background follows the same monochrome/selective-color/crosshatch illustration style as the episode
-  itself. Always explicitly instruct clean, legible, correctly spelled bold text, no distorted or garbled
-  lettering.
+- "thumbnail.headline_text" is a short, catchy, bold headline (under 45 characters) directly related to this
+  specific episode's hook.
+- "thumbnail.left_pose_prompt" describes ONLY the woman mascot's pose, expression, and any accessory/object
+  she is holding or wearing, relevant to this episode's topic — plain white background, no scenery (e.g. for
+  a shopping-habits topic: "confidently holding a shopping bag, smiling"). Do not describe her face/hair/
+  clothing in detail, only pose and topic-relevant accessory.
+- "thumbnail.right_pose_prompt" is the same but for the man mascot.
 - "thumbnail.left_label" is always a short (1-2 word) label for the woman's side (e.g. "WOMEN"), and
   "thumbnail.right_label" is always a short (1-2 word) label for the man's side (e.g. "MEN").
-- "thumbnail.left_color" and "thumbnail.right_color" are hex-like ffmpeg colors in the form 0xRRGGBB.
 
 CRITICAL: The output must be STRICTLY VALID, parseable JSON. Any double-quote characters that appear inside
 a string value (for example around a study or journal title in the citation) MUST be escaped as \". Do not
@@ -432,7 +473,7 @@ use unescaped straight quotes inside string values. Do not include trailing comm
 Output EXACTLY this JSON schema, nothing else:
 {{
   "video_meta": {{"title": "...", "description": "...", "tags": ["...", "..."]}},
-  "thumbnail": {{"background_prompt": "...", "left_label": "...", "right_label": "...", "left_color": "0x2E86AB", "right_color": "0xE07A5F"}},
+  "thumbnail": {{"headline_text": "...", "left_pose_prompt": "...", "right_pose_prompt": "...", "left_label": "...", "right_label": "..."}},
   "scenes": [
     {{"image_prompt": "...", "narration": "...", "subject": "woman"}}
   ]
@@ -533,8 +574,8 @@ def main():
     final_video = concat_clips(clip_paths)
 
     thumb_path = None
-    if thumb_cfg.get("background_prompt"):
-        thumb_path = generate_thumbnail(thumb_cfg, reference_image=[WOMAN_REFERENCE_URL, MAN_REFERENCE_URL, THUMBNAIL_LOGO_REFERENCE_URL])
+    if thumb_cfg.get("headline_text") or meta.get("title"):
+        thumb_path = generate_thumbnail(thumb_cfg, meta=meta)
 
     print(f"\nBitti! Video hazır: {final_video}")
     if thumb_path:
