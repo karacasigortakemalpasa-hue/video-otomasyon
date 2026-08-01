@@ -195,17 +195,21 @@ def wrap_text(text: str, max_chars: int = 42) -> str:
 
 
 def generate_thumbnail(thumb_cfg: dict, meta: dict = None) -> str:
-    """Kapak resmi: kadin ve erkek karakter AYRI AYRI (tek referansla, daha guvenilir) uretilir,
-    beyaz zemine yerlestirilir, baslik yazisi ve VS amblemi ffmpeg ile garantili sekilde eklenir."""
+    """Kapak resmi: kadin ve erkek karakter AYRI AYRI (tek referansla, guvenilir) uretilir -
+    her birinin pozuna konuyla ilgili, karakterden daha az goze carpan ikincil bir obje/gorsel
+    entegre edilebilir. Baslik yazisi bizim gercek fontumuzla, VS amblemi bizim gercek logo
+    dosyamizla, ffmpeg ile garantili sekilde eklenir."""
     left_prompt = thumb_cfg.get("left_pose_prompt", "standing confidently, plain white background")
     right_prompt = thumb_cfg.get("right_pose_prompt", "standing confidently, plain white background")
     headline = thumb_cfg.get("headline_text") or (meta or {}).get("title", "")
-    left_label = thumb_cfg.get("left_label", "WOMEN")
-    right_label = thumb_cfg.get("right_label", "MEN")
 
     style_note = ("Simple flat 2D digital illustration character, clean line-work, plain solid white "
                   "background, no scenery, no shadow, full body or waist-up, facing forward or "
-                  "three-quarter angle. ")
+                  "three-quarter angle. The character's face, hair, and clothing must match EXACTLY as "
+                  "shown in the reference image — do not restyle them. Any secondary topic-related object "
+                  "or visual element must be clearly SMALLER and LESS prominent than the character itself, "
+                  "positioned near or interacting with them, never competing with or overshadowing the "
+                  "character. ")
 
     left_img = os.path.join(OUTPUT_DIR, "thumb_left.jpg")
     right_img = os.path.join(OUTPUT_DIR, "thumb_right.jpg")
@@ -222,7 +226,6 @@ def generate_thumbnail(thumb_cfg: dict, meta: dict = None) -> str:
 
     has_logo = os.path.exists(logo_path)
 
-    # 1280x720 beyaz zemin, sol yariya kadin, sag yariya erkek, ustte baslik, ortada logo (varsa)
     inputs = ["-f", "lavfi", "-i", "color=c=white:s=1280x720", "-i", left_img, "-i", right_img]
     if has_logo:
         inputs += ["-i", logo_path]
@@ -234,11 +237,7 @@ def generate_thumbnail(thumb_cfg: dict, meta: dict = None) -> str:
         "[bg][l]overlay=x=10:y=180[bg1];"
         "[bg1][r]overlay=x=650:y=180[bg2];"
         f"[bg2]drawtext=fontfile={font}:text='{safe_headline}':fontcolor=black:fontsize=54:"
-        "borderw=0:x=(w-text_w)/2:y=20:line_spacing=6,"
-        f"drawtext=fontfile={font}:text='{left_label}':fontcolor=0xE07A5F:fontsize=34:"
-        "borderw=2:bordercolor=black:x=180-text_w/2:y=150,"
-        f"drawtext=fontfile={font}:text='{right_label}':fontcolor=0x2E86AB:fontsize=34:"
-        "borderw=2:bordercolor=black:x=1100-text_w/2:y=150[bg3]"
+        "borderw=0:x=(w-text_w)/2:y=20:line_spacing=6[bg3]"
     )
     if has_logo:
         filter_complex += (
@@ -255,9 +254,10 @@ def generate_thumbnail(thumb_cfg: dict, meta: dict = None) -> str:
         "-frames:v", "1", "-update", "1",
         final_thumb,
     ]
-    print("Kapak birleştiriliyor (yazı/amblem garantili şekilde ekleniyor)...")
+    print("Kapak birleştiriliyor (gerçek font + gerçek logo, garantili şekilde)...")
     subprocess.run(cmd, check=True, capture_output=True)
     return final_thumb
+
 
 
 def generate_audio(text: str, index: int, voice_name: str = "en-GB-Neural2-F", language_code: str = "en-GB") -> str:
@@ -467,13 +467,13 @@ Rules:
 - "video_meta.tags" is a list of 5-10 relevant keyword tags.
 - "thumbnail.headline_text" is a short, catchy, bold headline (under 45 characters) directly related to this
   specific episode's hook.
-- "thumbnail.left_pose_prompt" describes ONLY the woman mascot's pose, expression, and any accessory/object
-  she is holding or wearing, relevant to this episode's topic — plain white background, no scenery (e.g. for
-  a shopping-habits topic: "confidently holding a shopping bag, smiling"). Do not describe her face/hair/
-  clothing in detail, only pose and topic-relevant accessory.
-- "thumbnail.right_pose_prompt" is the same but for the man mascot.
-- "thumbnail.left_label" is always a short (1-2 word) label for the woman's side (e.g. "WOMEN"), and
-  "thumbnail.right_label" is always a short (1-2 word) label for the man's side (e.g. "MEN").
+- "thumbnail.left_pose_prompt" describes ONLY the woman mascot's pose, expression, and one small topic-relevant
+  secondary object/prop she is holding, wearing, or interacting with, relevant to this episode's topic (e.g.
+  for a shopping-habits topic: "she is confidently holding a small shopping bag, smiling"). This secondary
+  object must stay clearly smaller and less prominent than the character herself. Do not describe her face/
+  hair/clothing design, only pose, expression, and the topic-relevant secondary object.
+- "thumbnail.right_pose_prompt" is the same but for the man mascot (e.g. "he is looking at an empty wallet
+  with a worried expression").
 
 CRITICAL: The output must be STRICTLY VALID, parseable JSON. Any double-quote characters that appear inside
 a string value (for example around a study or journal title in the citation) MUST be escaped as \". Do not
@@ -482,7 +482,7 @@ use unescaped straight quotes inside string values. Do not include trailing comm
 Output EXACTLY this JSON schema, nothing else:
 {{
   "video_meta": {{"title": "...", "description": "...", "tags": ["...", "..."]}},
-  "thumbnail": {{"headline_text": "...", "left_pose_prompt": "...", "right_pose_prompt": "...", "left_label": "...", "right_label": "..."}},
+  "thumbnail": {{"headline_text": "...", "left_pose_prompt": "...", "right_pose_prompt": "..."}},
   "scenes": [
     {{"image_prompt": "...", "narration": "...", "subject": "woman"}}
   ]
