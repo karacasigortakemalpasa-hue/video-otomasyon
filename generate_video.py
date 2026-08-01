@@ -226,18 +226,19 @@ Do not include any text, letters, numbers, logos, or badges in the image."""
         inputs += ["-i", logo_path]
 
     filter_complex = (
-        f"[0:v]drawtext=fontfile={font}:text='{safe_headline}':fontcolor=black:fontsize=72:"
-        "borderw=4:bordercolor=white:x=(w-text_w)/2:y=(h-text_h)/2+40:line_spacing=8[bg3]"
+        f"[0:v]drawtext=fontfile={font}:text='{safe_headline}':fontcolor=black:fontsize=100:"
+        "borderw=3:bordercolor=black:box=1:boxcolor=white@0.92:boxborderw=20:"
+        "x=(w-text_w)/2:y=15:line_spacing=10[bg3]"
     )
     if has_logo:
         filter_complex += (
             ";[1:v]scale=-1:170[logo];"
-            "[bg3][logo]overlay=x=(W-w)/2:y=15[out]"
+            "[bg3][logo]overlay=x=(W-w)/2:y=(H-h)/2+40[out]"
         )
     else:
         filter_complex += (
             f";[bg3]drawtext=fontfile={font}:text='VS':fontcolor=0xFF2222:fontsize=70:"
-            "borderw=5:bordercolor=white:x=(w-text_w)/2:y=20[out]"
+            "borderw=5:bordercolor=white:x=(w-text_w)/2:y=(h-text_h)/2+40[out]"
         )
 
     cmd = ["ffmpeg", "-y", *inputs, "-filter_complex", filter_complex, "-map", "[out]",
