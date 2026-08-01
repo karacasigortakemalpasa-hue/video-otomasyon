@@ -217,7 +217,7 @@ Do not include any text, letters, numbers, logos, or badges in the image."""
 
     font = "font.ttf"  # repo koklerinden yuklenen Chewy fontu
     logo_path = "thumbnail_logo.png"  # repo koklerinden yuklenen seffaf logo PNG'si
-    safe_headline = wrap_text(headline, max_chars=16).replace("'", "\u2019").replace(":", "\\:").replace(",", "\\,")
+    safe_headline = headline.replace("'", "\u2019").replace(":", "\\:").replace(",", "\\,")
 
     has_logo = os.path.exists(logo_path)
 
@@ -226,9 +226,9 @@ Do not include any text, letters, numbers, logos, or badges in the image."""
         inputs += ["-i", logo_path]
 
     filter_complex = (
-        f"[0:v]drawtext=fontfile={font}:text='{safe_headline}':fontcolor=black:fontsize=100:"
-        "borderw=3:bordercolor=black:box=1:boxcolor=white@0.92:boxborderw=20:"
-        "x=(w-text_w)/2:y=15:line_spacing=10[bg3]"
+        f"[0:v]drawtext=fontfile={font}:text='{safe_headline}':fontcolor=black:fontsize=64:"
+        "borderw=4:bordercolor=white:"
+        "x=(w-text_w)/2:y=20[bg3]"
     )
     if has_logo:
         filter_complex += (
@@ -457,7 +457,8 @@ Rules:
      roughly 7 seconds per scene).
   6. A blank line, then 4-6 relevant hashtags starting with #.
 - "video_meta.tags" is a list of 5-10 relevant keyword tags.
-- "thumbnail.headline_text" is a short, catchy, bold headline (under 45 characters) directly related to this
+- "thumbnail.headline_text" is a short, catchy, bold headline (STRICTLY under 30 characters, must fit on a
+  single line) directly related to this
   specific episode's hook.
 - "thumbnail.left_pose_prompt" describes ONLY the woman mascot's pose, expression, and one small topic-relevant
   secondary object/prop she is holding, wearing, or interacting with, relevant to this episode's topic (e.g.
