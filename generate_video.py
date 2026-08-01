@@ -195,59 +195,49 @@ def wrap_text(text: str, max_chars: int = 42) -> str:
 
 
 def generate_thumbnail(thumb_cfg: dict, meta: dict = None) -> str:
-    """Kapak resmi: kadin ve erkek karakter AYRI AYRI (tek referansla, guvenilir) uretilir -
-    her birinin pozuna konuyla ilgili, karakterden daha az goze carpan ikincil bir obje/gorsel
-    entegre edilebilir. Baslik yazisi bizim gercek fontumuzla, VS amblemi bizim gercek logo
-    dosyamizla, ffmpeg ile garantili sekilde eklenir."""
-    left_prompt = thumb_cfg.get("left_pose_prompt", "standing confidently, plain white background")
-    right_prompt = thumb_cfg.get("right_pose_prompt", "standing confidently, plain white background")
+    """Kapak resmi: kadin ve erkek TEK istekte, IKI referansla birlikte, tek/butunluklu bir sahne
+    olarak uretilir (ayri ayri uretip yan yana koymak 'iki vesikalik kutu' hissi veriyordu, bu
+    yontem bunu onluyor). Baslik yazisi bizim gercek fontumuzla, logo bizim gercek logo dosyamizla,
+    ffmpeg ile garantili sekilde (AI'a birakilmadan) eklenir."""
+    left_prompt = thumb_cfg.get("left_pose_prompt", "standing confidently")
+    right_prompt = thumb_cfg.get("right_pose_prompt", "standing confidently")
     headline = thumb_cfg.get("headline_text") or (meta or {}).get("title", "")
 
-    style_note = ("Simple flat 2D digital illustration character, clean line-work, plain solid white "
-                  "background, no scenery, no shadow, full body or waist-up, facing forward or "
-                  "three-quarter angle. The character's face, hair, and clothing must match EXACTLY as "
-                  "shown in the reference image — do not restyle them. Any secondary topic-related object "
-                  "or visual element must be clearly SMALLER and LESS prominent than the character itself, "
-                  "positioned near or interacting with them, never competing with or overshadowing the "
-                  "character. ")
-
-    left_img = os.path.join(OUTPUT_DIR, "thumb_left.jpg")
-    right_img = os.path.join(OUTPUT_DIR, "thumb_right.jpg")
-
-    print("Kapak için kadın karakter üretiliyor...")
-    _gemini_generate_image(style_note + left_prompt, left_img, aspect_ratio="3:4", reference_image_url=WOMAN_REFERENCE_URL)
-    print("Kapak için erkek karakter üretiliyor...")
-    _gemini_generate_image(style_note + right_prompt, right_img, aspect_ratio="3:4", reference_image_url=MAN_REFERENCE_URL)
+    scene_prompt = f"""Create a single richly detailed, dramatic comic-book style illustration, 16:9 widescreen, full frame, one continuous plain white background — no panels, no borders, no separate colored zones, both characters share the exact same seamless white background.
+On the LEFT side of the frame: the woman, EXACTLY as shown in her reference image (identical face, hair, and clothing — do not restyle or redesign her), {left_prompt}.
+On the RIGHT side of the frame: the man, EXACTLY as shown in his reference image (identical face, hair, and clothing — do not restyle or redesign him), {right_prompt}.
+Both characters large, filling most of the frame height, three-quarter angle, bold dynamic shading and dramatic expression for visual impact. Leave the center-top area and a small gap between the two characters clear of any characters or objects (this space will have text and a logo added afterward).
+Do not include any text, letters, numbers, logos, or badges in the image."""
 
     final_thumb = os.path.join(OUTPUT_DIR, "thumbnail.jpg")
+    scene_img = os.path.join(OUTPUT_DIR, "thumb_scene.jpg")
+
+    print("Kapak sahnesi (kadın+erkek birlikte, tek istek) üretiliyor...")
+    _gemini_generate_image(scene_prompt, scene_img, aspect_ratio="16:9", reference_image_url=[WOMAN_REFERENCE_URL, MAN_REFERENCE_URL])
+
     font = "font.ttf"  # repo koklerinden yuklenen Chewy fontu
     logo_path = "thumbnail_logo.png"  # repo koklerinden yuklenen seffaf logo PNG'si
-    safe_headline = wrap_text(headline, max_chars=28).replace("'", "\u2019").replace(":", "\\:").replace(",", "\\,")
+    safe_headline = wrap_text(headline, max_chars=16).replace("'", "\u2019").replace(":", "\\:").replace(",", "\\,")
 
     has_logo = os.path.exists(logo_path)
 
-    inputs = ["-f", "lavfi", "-i", "color=c=white:s=1280x720", "-i", left_img, "-i", right_img]
+    inputs = ["-i", scene_img]
     if has_logo:
         inputs += ["-i", logo_path]
 
     filter_complex = (
-        "color=c=white:s=1280x720[bg];"
-        "[1:v]scale=620:-1[l];"
-        "[2:v]scale=620:-1[r];"
-        "[bg][l]overlay=x=10:y=180[bg1];"
-        "[bg1][r]overlay=x=650:y=180[bg2];"
-        f"[bg2]drawtext=fontfile={font}:text='{safe_headline}':fontcolor=black:fontsize=54:"
-        "borderw=0:x=(w-text_w)/2:y=20:line_spacing=6[bg3]"
+        f"[0:v]drawtext=fontfile={font}:text='{safe_headline}':fontcolor=black:fontsize=72:"
+        "borderw=4:bordercolor=white:x=(w-text_w)/2:y=(h-text_h)/2+40:line_spacing=8[bg3]"
     )
     if has_logo:
         filter_complex += (
-            ";[3:v]scale=-1:220[logo];"
-            "[bg3][logo]overlay=x=(W-w)/2:y=(H-h)/2+70[out]"
+            ";[1:v]scale=-1:170[logo];"
+            "[bg3][logo]overlay=x=(W-w)/2:y=15[out]"
         )
     else:
         filter_complex += (
-            f";[bg3]drawtext=fontfile={font}:text='VS':fontcolor=0xFF2222:fontsize=90:"
-            "borderw=6:bordercolor=white:x=(w-text_w)/2:y=(h-text_h)/2+60[out]"
+            f";[bg3]drawtext=fontfile={font}:text='VS':fontcolor=0xFF2222:fontsize=70:"
+            "borderw=5:bordercolor=white:x=(w-text_w)/2:y=20[out]"
         )
 
     cmd = ["ffmpeg", "-y", *inputs, "-filter_complex", filter_complex, "-map", "[out]",
@@ -257,6 +247,7 @@ def generate_thumbnail(thumb_cfg: dict, meta: dict = None) -> str:
     print("Kapak birleştiriliyor (gerçek font + gerçek logo, garantili şekilde)...")
     subprocess.run(cmd, check=True, capture_output=True)
     return final_thumb
+
 
 
 
