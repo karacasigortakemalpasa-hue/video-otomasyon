@@ -409,7 +409,7 @@ def upload_to_youtube(video_path: str, thumb_path: str, meta: dict):
 WOMAN_REFERENCE_URL = "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/woman_mascot.jpg"
 MAN_REFERENCE_URL = "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/man_mascot.jpg"
 
-STYLE_GUIDE = """[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Characters are drawn in a simple, minimalist stick-figure-person style with details, round white heads, small dot eyes, expressive exaggerated faces. Highly detailed crosshatched background. Minimal noise, sharp lines."""
+STYLE_GUIDE = """[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Highly detailed crosshatched background. Minimal noise, sharp lines. The character's face, hairstyle, and body must match EXACTLY as shown in the provided reference image — do not alter, simplify, or restyle their facial features in any way, only change their pose, expression, and clothing accessory as needed for the scene."""
 
 
 def expand_topic_to_scenes(topic: str, num_scenes: int = 30) -> dict:
