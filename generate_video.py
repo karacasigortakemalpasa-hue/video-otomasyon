@@ -216,10 +216,17 @@ def generate_thumbnail(thumb_cfg: dict, meta: dict = None) -> str:
     _gemini_generate_image(style_note + right_prompt, right_img, aspect_ratio="3:4", reference_image_url=MAN_REFERENCE_URL)
 
     final_thumb = os.path.join(OUTPUT_DIR, "thumbnail.jpg")
-    font = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
+    font = "font.ttf"  # repo koklerinden yuklenen Chewy fontu
+    logo_path = "thumbnail_logo.png"  # repo koklerinden yuklenen seffaf logo PNG'si
     safe_headline = wrap_text(headline, max_chars=28).replace("'", "\u2019").replace(":", "\\:").replace(",", "\\,")
 
-    # 1280x720 beyaz zemin, sol yariya kadin, sag yariya erkek, ustte baslik, ortada VS amblemi
+    has_logo = os.path.exists(logo_path)
+
+    # 1280x720 beyaz zemin, sol yariya kadin, sag yariya erkek, ustte baslik, ortada logo (varsa)
+    inputs = ["-f", "lavfi", "-i", "color=c=white:s=1280x720", "-i", left_img, "-i", right_img]
+    if has_logo:
+        inputs += ["-i", logo_path]
+
     filter_complex = (
         "color=c=white:s=1280x720[bg];"
         "[1:v]scale=620:-1[l];"
@@ -231,18 +238,20 @@ def generate_thumbnail(thumb_cfg: dict, meta: dict = None) -> str:
         f"drawtext=fontfile={font}:text='{left_label}':fontcolor=0xE07A5F:fontsize=34:"
         "borderw=2:bordercolor=black:x=180-text_w/2:y=150,"
         f"drawtext=fontfile={font}:text='{right_label}':fontcolor=0x2E86AB:fontsize=34:"
-        "borderw=2:bordercolor=black:x=1100-text_w/2:y=150,"
-        f"drawtext=fontfile={font}:text='VS':fontcolor=0xFF2222:fontsize=90:"
-        "borderw=6:bordercolor=white:x=(w-text_w)/2:y=(h-text_h)/2+60[out]"
+        "borderw=2:bordercolor=black:x=1100-text_w/2:y=150[bg3]"
     )
+    if has_logo:
+        filter_complex += (
+            ";[3:v]scale=-1:220[logo];"
+            "[bg3][logo]overlay=x=(W-w)/2:y=(H-h)/2+70[out]"
+        )
+    else:
+        filter_complex += (
+            f";[bg3]drawtext=fontfile={font}:text='VS':fontcolor=0xFF2222:fontsize=90:"
+            "borderw=6:bordercolor=white:x=(w-text_w)/2:y=(h-text_h)/2+60[out]"
+        )
 
-    cmd = [
-        "ffmpeg", "-y",
-        "-f", "lavfi", "-i", "color=c=white:s=1280x720",
-        "-i", left_img,
-        "-i", right_img,
-        "-filter_complex", filter_complex,
-        "-map", "[out]",
+    cmd = ["ffmpeg", "-y", *inputs, "-filter_complex", filter_complex, "-map", "[out]",
         "-frames:v", "1", "-update", "1",
         final_thumb,
     ]
