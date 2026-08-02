@@ -640,6 +640,11 @@ def make_short_line_clip(subject: str, text: str, index: int, is_hook: bool = Fa
     prompt = (f"Simple, clean 2D illustration, plain solid white background, no scenery. "
               f"The character exactly as shown in the reference image (identical face, hair, clothing — "
               f"do not restyle), waist-up, reacting to this line with a clear, exaggerated expression: \"{text}\". "
+              f"Include one small, clearly relevant prop or visual element tied directly to the content of "
+              f"this line (for example: a shopping bag, a price tag, an empty wallet, a cash register, a "
+              f"pile of money, a receipt — whatever concretely matches what the line is about), held by or "
+              f"positioned right next to the character. This prop must stay clearly smaller and less "
+              f"prominent than the character, reinforcing the topic visually without overshadowing them. "
               f"Vertical portrait framing, character centered.")
 
     _gemini_generate_image(prompt, img_path, aspect_ratio="9:16", reference_image_url=ref)
@@ -699,7 +704,7 @@ def make_short_line_clip(subject: str, text: str, index: int, is_hook: bool = Fa
         "-filter_complex", filter_complex,
         "-map", "[out]", "-map", "1:a",
         "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p",
-        "-c:a", "aac", "-b:a", "160k",
+        "-c:a", "aac", "-b:a", "160k", "-ar", "44100",
         "-shortest", "-t", str(duration),
         clip_path,
     ]
@@ -717,7 +722,7 @@ def build_transition_clip(sfx_kind: str, color: str, out_path: str):
         "-f", "lavfi", "-i", f"color=c={color}:s=1080x1920:d={duration:.3f}",
         "-i", sfx_path,
         "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p",
-        "-c:a", "aac", "-b:a", "160k",
+        "-c:a", "aac", "-b:a", "160k", "-ar", "44100",
         "-shortest",
         out_path,
     ]
