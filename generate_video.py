@@ -535,13 +535,184 @@ TOPIC: {topic}
     return config
 
 
-def main():
+def expand_topic_to_short(topic: str) -> dict:
+    """Bir konuyu, YouTube Shorts icin hizli/carpici, karsilikli konusma tarzinda kisa bir
+    senaryoya cevirir (ayri, bagimsiz bir uretim - uzun videodan kesilmiyor)."""
+    system_prompt = f"""You are writing a punchy, fast-paced YouTube SHORTS script (vertical, under 60 seconds)
+for a "Men vs Women" comparison channel. This is a SEPARATE, standalone production from the long-form video,
+even though it covers the same general topic.
+
+TOPIC: {topic}
+
+Write STRICT JSON (no markdown fences, no commentary, just the JSON object).
+
+FORMAT: 6 to 9 very short, punchy lines, alternating back and forth between the woman and the man like a
+rapid back-and-forth exchange or quick-fire fact reveal (each line under 12 words, quotable, surprising, or
+funny). Line 1 must be a scroll-stopping hook question or bold claim. The LAST line must be a quick, natural
+call to action to follow/subscribe for more (short, not corny).
+
+Each line object needs:
+- "subject": "woman" or "man" — whose reaction/face is shown for this line
+- "text": the short spoken line
+
+video_meta.title: a short, curiosity-driven, clickable Shorts title (under 55 characters), often phrased as
+a question or bold claim.
+video_meta.description: 1-2 punchy hook sentences, then a few relevant hashtags including #Shorts as the
+first hashtag.
+video_meta.tags: 5-8 short relevant keyword tags.
+
+CRITICAL: Output must be STRICTLY VALID JSON. Escape any internal double quotes as \\". No trailing commas.
+
+Output EXACTLY this schema:
+{{
+  "video_meta": {{"title": "...", "description": "...", "tags": ["...", "..."]}},
+  "lines": [
+    {{"subject": "woman", "text": "..."}}
+  ]
+}}
+"""
+
+    token = _get_vertex_access_token()
+    host = "aiplatform.googleapis.com" if GCP_REGION == "global" else f"{GCP_REGION}-aiplatform.googleapis.com"
+    url = (
+        f"https://{host}/v1/projects/{GCP_PROJECT_ID}"
+        f"/locations/{GCP_REGION}/publishers/google/models/gemini-3.5-flash-lite:generateContent"
+    )
+    payload = {
+        "contents": [{"role": "user", "parts": [{"text": system_prompt}]}],
+        "generationConfig": {"responseMimeType": "application/json"},
+    }
+    data = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(
+        url, data=data,
+        headers={"Content-Type": "application/json", "Authorization": f"Bearer {token}"},
+    )
+    print(f"Short senaryoya çevriliyor: {topic[:60]}...")
+
+    max_attempts = 3
+    config = None
+    for attempt in range(max_attempts):
+        try:
+            with urllib.request.urlopen(req, timeout=180) as resp:
+                result = json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as e:
+            body = e.read().decode("utf-8", errors="ignore")
+            print(f"GEMINI METIN HATA {e.code}: {body}")
+            raise
+
+        text_out = result["candidates"][0]["content"]["parts"][0]["text"].strip()
+        if text_out.startswith("```"):
+            text_out = text_out.split("```")[1]
+            if text_out.startswith("json"):
+                text_out = text_out[4:]
+        try:
+            config = json.loads(text_out)
+            break
+        except json.JSONDecodeError as e:
+            print(f"Short JSON'u bozuk geldi (deneme {attempt + 1}/{max_attempts}): {e}")
+            if attempt == max_attempts - 1:
+                raise
+            continue
+
+    return config
+
+
+def build_transition_sfx(out_path: str, duration: float = 0.25):
+    """Sahne gecisleri icin kisa, sentetik bir 'ding/pop' sesi uretir (telifsiz)."""
+    cmd = [
+        "ffmpeg", "-y",
+        "-f", "lavfi", "-i",
+        f"sine=frequency=1200:duration={duration},afade=t=in:d=0.02,afade=t=out:st={max(0, duration-0.08)}:d=0.08,volume=0.35",
+        out_path,
+    ]
+    subprocess.run(cmd, check=True, capture_output=True)
+
+
+def make_short_line_clip(subject: str, text: str, index: int) -> tuple:
+    """Short icin tek bir satiri (karakter gorseli + ses + alt yazi + gecis sesi) uretir."""
+    ref = MAN_REFERENCE_URL if subject == "man" else WOMAN_REFERENCE_URL
+    img_path = os.path.join(IMG_DIR, f"short_{index:02d}.jpg")
+
+    prompt = (f"Simple, clean 2D illustration, plain solid white background, no scenery. "
+              f"The character exactly as shown in the reference image (identical face, hair, clothing — "
+              f"do not restyle), waist-up, reacting to this line with a clear, exaggerated expression: \"{text}\". "
+              f"Vertical portrait framing, character centered.")
+
+    _gemini_generate_image(prompt, img_path, aspect_ratio="9:16", reference_image_url=ref)
+    audio_path = generate_audio(text, index, voice_name="en-GB-Neural2-F" if subject == "woman" else "en-GB-Neural2-D")
+    duration = get_audio_duration(audio_path)
+
+    font = "font.ttf"
+    logo_path = "thumbnail_logo.png"
+    safe_text = wrap_text(text, max_chars=22).replace("'", "\u2019").replace(":", "\\:").replace(",", "\\,")
+
+    clip_path = os.path.join(CLIP_DIR, f"short_clip_{index:02d}.mp4")
+    inputs = ["-loop", "1", "-i", img_path, "-i", audio_path]
+    filter_complex = (
+        "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920[bg];"
+        f"[bg]drawtext=fontfile={font}:text='{safe_text}':fontcolor=white:fontsize=58:"
+        "borderw=5:bordercolor=black:x=(w-text_w)/2:y=h-320:line_spacing=10[bg2]"
+    )
+    if os.path.exists(logo_path):
+        inputs += ["-i", logo_path]
+        filter_complex += ";[2:v]scale=180:-1[logo];[bg2][logo]overlay=x=(W-w)/2:y=40[out]"
+    else:
+        filter_complex += "[out]"
+
+    cmd = [
+        "ffmpeg", "-y", *inputs,
+        "-filter_complex", filter_complex,
+        "-map", "[out]", "-map", "1:a",
+        "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p",
+        "-c:a", "aac", "-b:a", "160k",
+        "-shortest", "-t", str(duration),
+        clip_path,
+    ]
+    subprocess.run(cmd, check=True, capture_output=True)
+    return clip_path, duration
+
+
+def process_short(config: dict):
+    """Tamamen bagimsiz bir Shorts uretim + yukleme akisi."""
+    lines = config["lines"]
+    meta = config.get("video_meta", {})
+
+    clip_paths = []
+    for i, line in enumerate(lines, start=1):
+        print(f"[Short {i}] üretiliyor ({line.get('subject')})...")
+        clip_path, _ = make_short_line_clip(line.get("subject", "woman"), line.get("text", ""), i)
+        clip_paths.append(clip_path)
+        if i < len(lines):
+            sfx_path = os.path.join(AUDIO_DIR, f"sfx_{i:02d}.mp3")
+            build_transition_sfx(sfx_path)
+
+    final_short = os.path.join(OUTPUT_DIR, "final_short.mp4")
+    list_file = os.path.join(OUTPUT_DIR, "short_concat_list.txt")
+    with open(list_file, "w") as f:
+        for p in clip_paths:
+            f.write(f"file '{os.path.abspath(p)}'\n")
+    cmd = ["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", list_file, "-c", "copy", final_short]
+    print("Short sahneleri birleştiriliyor...")
+    subprocess.run(cmd, check=True, capture_output=True)
+
+    print(f"\nShort hazır: {final_short}")
+    upload_to_youtube(final_short, None, meta)
+
+
+
     if len(sys.argv) < 2:
         print("Kullanım: python generate_video.py scenes.json")
         sys.exit(1)
 
     with open(sys.argv[1], "r", encoding="utf-8") as f:
         config = json.load(f)
+
+    if config.get("format") == "short" and "lines" not in config:
+        config = expand_topic_to_short(config["topic"])
+        with open(os.path.join(OUTPUT_DIR, "expanded_short.json"), "w", encoding="utf-8") as f:
+            json.dump(config, f, ensure_ascii=False, indent=2)
+        process_short(config)
+        return
 
     if "scenes" not in config and "topic" in config:
         config = expand_topic_to_scenes(config["topic"], config.get("num_scenes", 30))
