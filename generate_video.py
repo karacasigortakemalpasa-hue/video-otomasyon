@@ -617,19 +617,23 @@ Output EXACTLY this schema:
     return config
 
 
-def build_transition_sfx(out_path: str, duration: float = 0.25):
-    """Sahne gecisleri icin kisa, sentetik bir 'ding/pop' sesi uretir (telifsiz)."""
-    cmd = [
-        "ffmpeg", "-y",
-        "-f", "lavfi", "-i",
-        f"sine=frequency=1200:duration={duration},afade=t=in:d=0.02,afade=t=out:st={max(0, duration-0.08)}:d=0.08,volume=0.35",
-        out_path,
-    ]
+def build_transition_sfx(out_path: str, kind: str = "ding"):
+    """Sahne gecisleri icin kisa, cesitli sentetik sesler uretir (telifsiz)."""
+    if kind == "whoosh":
+        filt = "sine=frequency=300:duration=0.3,afade=t=in:d=0.02,afade=t=out:st=0.2:d=0.1,volume=0.3"
+    elif kind == "pop":
+        filt = "sine=frequency=900:duration=0.12,afade=t=out:st=0.03:d=0.09,volume=0.4"
+    elif kind == "drum":
+        filt = "sine=frequency=150:duration=0.35,tremolo=f=18:d=0.8,afade=t=out:st=0.25:d=0.1,volume=0.3"
+    else:  # ding
+        filt = "sine=frequency=1200:duration=0.25,afade=t=in:d=0.02,afade=t=out:st=0.17:d=0.08,volume=0.35"
+
+    cmd = ["ffmpeg", "-y", "-f", "lavfi", "-i", filt, out_path]
     subprocess.run(cmd, check=True, capture_output=True)
 
 
-def make_short_line_clip(subject: str, text: str, index: int) -> tuple:
-    """Short icin tek bir satiri (karakter gorseli + ses + alt yazi + gecis sesi) uretir."""
+def make_short_line_clip(subject: str, text: str, index: int, is_hook: bool = False) -> tuple:
+    """Short icin tek bir satiri (karakter gorseli + ses + hareketli altyazi + renkli flas gecisi) uretir."""
     ref = MAN_REFERENCE_URL if subject == "man" else WOMAN_REFERENCE_URL
     img_path = os.path.join(IMG_DIR, f"short_{index:02d}.jpg")
 
@@ -644,18 +648,49 @@ def make_short_line_clip(subject: str, text: str, index: int) -> tuple:
 
     font = "font.ttf"
     logo_path = "thumbnail_logo.png"
-    safe_text = wrap_text(text, max_chars=22).replace("'", "\u2019").replace(":", "\\:").replace(",", "\\,")
+    fps = 30
+    total_frames = max(1, int(duration * fps))
+
+    # Hareket: kanca (ilk) cumlede hizli zoom-punch, digerlerinde yumusak Ken Burns
+    zoom_rate = "0.0035" if is_hook else "0.0009"
+    zoom_max = "1.18" if is_hook else "1.10"
+
+    flash_color = "0x2E86AB" if subject == "man" else "0xE07A5F"
+    flash_dur = min(0.15, max(0.05, duration * 0.12))
+
+    # Alt yazi: kelime obekleri halinde, sirayla belirip kaybolan "flash caption" tarzi
+    words = text.split()
+    chunk_size = 3
+    chunks = [" ".join(words[i:i + chunk_size]) for i in range(0, len(words), chunk_size)]
+    if not chunks:
+        chunks = [""]
+    seg_dur = duration / len(chunks)
+
+    caption_filters = []
+    for i, chunk in enumerate(chunks):
+        safe_chunk = chunk.replace("'", "\u2019").replace(":", "\\:").replace(",", "\\,")
+        start = i * seg_dur
+        end = (i + 1) * seg_dur
+        caption_filters.append(
+            f"drawtext=fontfile={font}:text='{safe_chunk}':fontcolor=white:fontsize=64:"
+            f"borderw=6:bordercolor=black:x=(w-text_w)/2:y=h-360:"
+            f"enable='between(t,{start:.3f},{end:.3f})'"
+        )
+    captions_chain = ",".join(caption_filters)
 
     clip_path = os.path.join(CLIP_DIR, f"short_clip_{index:02d}.mp4")
     inputs = ["-loop", "1", "-i", img_path, "-i", audio_path]
+
     filter_complex = (
-        "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920[bg];"
-        f"[bg]drawtext=fontfile={font}:text='{safe_text}':fontcolor=white:fontsize=58:"
-        "borderw=5:bordercolor=black:x=(w-text_w)/2:y=h-320:line_spacing=10[bg2]"
+        "[0:v]scale=1350:2400:force_original_aspect_ratio=increase,crop=1350:2400,"
+        f"zoompan=z='min(zoom+{zoom_rate},{zoom_max})':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':"
+        f"d={total_frames}:s=1080x1920:fps={fps}[bg];"
+        f"[bg]{captions_chain}[bg2];"
+        f"[bg2]fade=t=in:st=0:d={flash_dur:.3f}:color={flash_color}[bg3]"
     )
     if os.path.exists(logo_path):
         inputs += ["-i", logo_path]
-        filter_complex += ";[2:v]scale=180:-1[logo];[bg2][logo]overlay=x=(W-w)/2:y=40[out]"
+        filter_complex += ";[2:v]scale=180:-1[logo];[bg3][logo]overlay=x=(W-w)/2:y=40[out]"
     else:
         filter_complex += "[out]"
 
@@ -672,19 +707,41 @@ def make_short_line_clip(subject: str, text: str, index: int) -> tuple:
     return clip_path, duration
 
 
+def build_transition_clip(sfx_kind: str, color: str, out_path: str):
+    """Gecis sesini + kisa renkli flas karesini birlestirip araya eklenecek bir video klip yapar."""
+    sfx_path = out_path.replace(".mp4", ".mp3")
+    build_transition_sfx(sfx_path, kind=sfx_kind)
+    duration = get_audio_duration(sfx_path)
+    cmd = [
+        "ffmpeg", "-y",
+        "-f", "lavfi", "-i", f"color=c={color}:s=1080x1920:d={duration:.3f}",
+        "-i", sfx_path,
+        "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p",
+        "-c:a", "aac", "-b:a", "160k",
+        "-shortest",
+        out_path,
+    ]
+    subprocess.run(cmd, check=True, capture_output=True)
+
+
 def process_short(config: dict):
     """Tamamen bagimsiz bir Shorts uretim + yukleme akisi."""
     lines = config["lines"]
     meta = config.get("video_meta", {})
+    sfx_kinds = ["whoosh", "pop", "ding", "drum"]
 
     clip_paths = []
     for i, line in enumerate(lines, start=1):
-        print(f"[Short {i}] üretiliyor ({line.get('subject')})...")
-        clip_path, _ = make_short_line_clip(line.get("subject", "woman"), line.get("text", ""), i)
+        subject = line.get("subject", "woman")
+        print(f"[Short {i}] üretiliyor ({subject})...")
+        clip_path, _ = make_short_line_clip(subject, line.get("text", ""), i, is_hook=(i == 1))
         clip_paths.append(clip_path)
         if i < len(lines):
-            sfx_path = os.path.join(AUDIO_DIR, f"sfx_{i:02d}.mp3")
-            build_transition_sfx(sfx_path)
+            next_subject = lines[i].get("subject", "woman")
+            flash_color = "0x2E86AB" if next_subject == "man" else "0xE07A5F"
+            trans_path = os.path.join(CLIP_DIR, f"trans_{i:02d}.mp4")
+            build_transition_clip(sfx_kinds[i % len(sfx_kinds)], flash_color, trans_path)
+            clip_paths.append(trans_path)
 
     final_short = os.path.join(OUTPUT_DIR, "final_short.mp4")
     list_file = os.path.join(OUTPUT_DIR, "short_concat_list.txt")
