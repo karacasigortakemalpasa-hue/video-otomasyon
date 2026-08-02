@@ -70,6 +70,8 @@ GEMINI_KEY = os.environ.get("GEMINI_API_KEY", "")
 GCP_SERVICE_ACCOUNT_JSON = os.environ.get("GCP_SERVICE_ACCOUNT_JSON", "")
 GCP_PROJECT_ID = os.environ.get("GCP_PROJECT_ID", "rosy-embassy-473607-a3")
 GCP_REGION = "global"
+GIPHY_API_KEY = os.environ.get("GIPHY_API_KEY", "")
+FREESOUND_API_KEY = os.environ.get("FREESOUND_API_KEY", "")
 
 _vertex_access_token_cache = {"token": None}
 
@@ -617,6 +619,63 @@ Output EXACTLY this schema:
     return config
 
 
+def fetch_gif(query: str, out_path: str) -> bool:
+    """GIPHY'den konuya uygun bir GIF indirir. Basarili olursa True, olmazsa False doner (cokmez)."""
+    if not GIPHY_API_KEY:
+        return False
+    try:
+        search_url = (
+            f"https://api.giphy.com/v1/gifs/search?api_key={GIPHY_API_KEY}"
+            f"&q={urllib.parse.quote(query)}&limit=1&rating=g"
+        )
+        req = urllib.request.Request(search_url)
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            result = json.loads(resp.read().decode("utf-8"))
+        data = result.get("data", [])
+        if not data:
+            return False
+        gif_url = data[0]["images"]["fixed_height"]["url"]
+        req2 = urllib.request.Request(gif_url)
+        with urllib.request.urlopen(req2, timeout=30) as resp2:
+            gif_bytes = resp2.read()
+        with open(out_path, "wb") as f:
+            f.write(gif_bytes)
+        return True
+    except Exception as e:
+        print(f"UYARI: GIPHY GIF çekilemedi ({query}): {e}")
+        return False
+
+
+def fetch_freesound_sfx(query: str, out_path: str) -> bool:
+    """Freesound'dan CC0 (telifsiz) lisansli kisa bir ses efekti indirir. Basarisiz olursa False doner."""
+    if not FREESOUND_API_KEY:
+        return False
+    try:
+        search_url = (
+            "https://freesound.org/apiv2/search/text/"
+            f"?query={urllib.parse.quote(query)}&filter=license:%22Creative+Commons+0%22"
+            f"&fields=id,previews&page_size=1&token={FREESOUND_API_KEY}"
+        )
+        req = urllib.request.Request(search_url)
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            result = json.loads(resp.read().decode("utf-8"))
+        results = result.get("results", [])
+        if not results:
+            return False
+        preview_url = results[0]["previews"].get("preview-hq-mp3") or results[0]["previews"].get("preview-lq-mp3")
+        if not preview_url:
+            return False
+        req2 = urllib.request.Request(preview_url)
+        with urllib.request.urlopen(req2, timeout=30) as resp2:
+            audio_bytes = resp2.read()
+        with open(out_path, "wb") as f:
+            f.write(audio_bytes)
+        return True
+    except Exception as e:
+        print(f"UYARI: Freesound sesi çekilemedi ({query}): {e}")
+        return False
+
+
 def build_transition_sfx(out_path: str, kind: str = "ding"):
     """Sahne gecisleri icin kisa, cesitli sentetik sesler uretir (telifsiz)."""
     if kind == "whoosh":
@@ -632,8 +691,9 @@ def build_transition_sfx(out_path: str, kind: str = "ding"):
     subprocess.run(cmd, check=True, capture_output=True)
 
 
-def make_short_line_clip(subject: str, text: str, index: int, is_hook: bool = False) -> tuple:
-    """Short icin tek bir satiri (karakter gorseli + ses + hareketli altyazi + renkli flas gecisi) uretir."""
+def make_short_line_clip(subject: str, text: str, index: int, is_hook: bool = False, gif_path: str = None) -> tuple:
+    """Short icin tek bir satiri (karakter gorseli + ses + hareketli altyazi + renkli flas gecisi) uretir.
+    gif_path verilirse, kosede kucuk bir loop'lu GIF sticker olarak eklenir."""
     ref = MAN_REFERENCE_URL if subject == "man" else WOMAN_REFERENCE_URL
     img_path = os.path.join(IMG_DIR, f"short_{index:02d}.jpg")
 
@@ -685,19 +745,39 @@ def make_short_line_clip(subject: str, text: str, index: int, is_hook: bool = Fa
 
     clip_path = os.path.join(CLIP_DIR, f"short_clip_{index:02d}.mp4")
     inputs = ["-loop", "1", "-i", img_path, "-i", audio_path]
+    next_input_idx = 2  # 0=img, 1=audio, siradaki input bu index'ten baslar
 
-    filter_complex = (
+    filter_parts = [
         "[0:v]scale=1350:2400:force_original_aspect_ratio=increase,crop=1350:2400,"
         f"zoompan=z='min(zoom+{zoom_rate},{zoom_max})':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':"
-        f"d={total_frames}:s=1080x1920:fps={fps}[bg];"
-        f"[bg]{captions_chain}[bg2];"
-        f"[bg2]fade=t=in:st=0:d={flash_dur:.3f}:color={flash_color}[bg3]"
-    )
-    if os.path.exists(logo_path):
+        f"d={total_frames}:s=1080x1920:fps={fps}[bg]",
+        f"[bg]{captions_chain}[bg2]",
+        f"[bg2]fade=t=in:st=0:d={flash_dur:.3f}:color={flash_color}[bg3]",
+    ]
+
+    current_label = "bg3"
+    has_logo = os.path.exists(logo_path)
+    has_gif = gif_path and os.path.exists(gif_path)
+
+    if has_gif:
+        inputs += ["-stream_loop", "-1", "-i", gif_path]
+        filter_parts.append(f"[{next_input_idx}:v]scale=280:-1[gifstk]")
+        filter_parts.append(f"[{current_label}][gifstk]overlay=x=W-w-30:y=H-h-350[bg4]")
+        current_label = "bg4"
+        next_input_idx += 1
+
+    if has_logo:
         inputs += ["-i", logo_path]
-        filter_complex += ";[2:v]scale=180:-1[logo];[bg3][logo]overlay=x=(W-w)/2:y=40[out]"
-    else:
-        filter_complex += "[out]"
+        filter_parts.append(f"[{next_input_idx}:v]scale=180:-1[logo]")
+        filter_parts.append(f"[{current_label}][logo]overlay=x=(W-w)/2:y=40[out]")
+        current_label = "out"
+        next_input_idx += 1
+
+    if current_label != "out":
+        # Ne gif ne logo eklendi, son etiketi dogrudan [out] yapalim
+        filter_parts[-1] = filter_parts[-1].replace(f"[{current_label}]", "[out]")
+
+    filter_complex = ";".join(filter_parts)
 
     cmd = [
         "ffmpeg", "-y", *inputs,
@@ -713,17 +793,22 @@ def make_short_line_clip(subject: str, text: str, index: int, is_hook: bool = Fa
 
 
 def build_transition_clip(sfx_kind: str, color: str, out_path: str):
-    """Gecis sesini + kisa renkli flas karesini birlestirip araya eklenecek bir video klip yapar."""
+    """Gecis sesini + kisa renkli flas karesini birlestirip araya eklenecek bir video klip yapar.
+    Once gercek (Freesound, CC0) ses denenir, olmazsa sentetik sese duser."""
     sfx_path = out_path.replace(".mp4", ".mp3")
-    build_transition_sfx(sfx_path, kind=sfx_kind)
-    duration = get_audio_duration(sfx_path)
+    real_query = {"whoosh": "whoosh swoosh transition", "pop": "pop click", "ding": "ding bell notification", "drum": "drum roll short"}.get(sfx_kind, "pop")
+    got_real = fetch_freesound_sfx(real_query, sfx_path)
+    if not got_real:
+        build_transition_sfx(sfx_path, kind=sfx_kind)
+
+    duration = min(get_audio_duration(sfx_path), 1.0)  # gercek sesler bazen uzun olabilir, 1sn ile sinirla
     cmd = [
         "ffmpeg", "-y",
         "-f", "lavfi", "-i", f"color=c={color}:s=1080x1920:d={duration:.3f}",
         "-i", sfx_path,
         "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p",
         "-c:a", "aac", "-b:a", "160k", "-ar", "44100",
-        "-shortest",
+        "-t", f"{duration:.3f}",
         out_path,
     ]
     subprocess.run(cmd, check=True, capture_output=True)
@@ -735,11 +820,20 @@ def process_short(config: dict):
     meta = config.get("video_meta", {})
     sfx_kinds = ["whoosh", "pop", "ding", "drum"]
 
+    # Kanca (ilk) cumle icin GIPHY'den konuyla ilgili bir GIF cekmeyi dene (basarisiz olursa sorun degil)
+    hook_gif_path = os.path.join(IMG_DIR, "hook.gif")
+    gif_query = meta.get("title") or (lines[0].get("text") if lines else "reaction")
+    got_gif = fetch_gif(gif_query, hook_gif_path)
+    if not got_gif:
+        hook_gif_path = None
+        print("GIF çekilemedi ya da GIPHY_API_KEY tanımlı değil, GIF'siz devam ediliyor.")
+
     clip_paths = []
     for i, line in enumerate(lines, start=1):
         subject = line.get("subject", "woman")
         print(f"[Short {i}] üretiliyor ({subject})...")
-        clip_path, _ = make_short_line_clip(subject, line.get("text", ""), i, is_hook=(i == 1))
+        gif_for_this_line = hook_gif_path if i == 1 else None
+        clip_path, _ = make_short_line_clip(subject, line.get("text", ""), i, is_hook=(i == 1), gif_path=gif_for_this_line)
         clip_paths.append(clip_path)
         if i < len(lines):
             next_subject = lines[i].get("subject", "woman")
