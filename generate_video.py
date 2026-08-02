@@ -700,6 +700,7 @@ def process_short(config: dict):
 
 
 
+def main():
     if len(sys.argv) < 2:
         print("Kullanım: python generate_video.py scenes.json")
         sys.exit(1)
