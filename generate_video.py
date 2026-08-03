@@ -667,8 +667,11 @@ def fetch_gif(query: str, out_path: str) -> bool:
             "-c:v", "libx264", "-pix_fmt", "yuv420p", "-an",
             out_path,
         ]
-        subprocess.run(cmd, check=True, capture_output=True)
+        subprocess.run(cmd, check=True, capture_output=True, timeout=30)
         return os.path.exists(out_path)
+    except subprocess.TimeoutExpired:
+        print(f"UYARI: GIF->MP4 dönüşümü 30 saniyede bitmedi, GIF'siz devam ediliyor ({query}).")
+        return False
     except Exception as e:
         print(f"UYARI: GIPHY GIF çekilemedi ({query}): {e}")
         return False
@@ -716,7 +719,7 @@ def build_transition_sfx(out_path: str, kind: str = "ding"):
         filt = "sine=frequency=1200:duration=0.25,afade=t=in:d=0.02,afade=t=out:st=0.17:d=0.08,volume=0.35"
 
     cmd = ["ffmpeg", "-y", "-f", "lavfi", "-i", filt, out_path]
-    subprocess.run(cmd, check=True, capture_output=True)
+    subprocess.run(cmd, check=True, capture_output=True, timeout=20)
 
 
 def make_short_line_clip(subject: str, text: str, index: int, is_hook: bool = False, gif_path: str = None) -> tuple:
@@ -820,7 +823,7 @@ def make_short_line_clip(subject: str, text: str, index: int, is_hook: bool = Fa
         "-shortest", "-t", str(duration),
         clip_path,
     ]
-    subprocess.run(cmd, check=True, capture_output=True)
+    subprocess.run(cmd, check=True, capture_output=True, timeout=90)
     return clip_path, duration
 
 
@@ -872,7 +875,7 @@ def concat_shorts_with_crossfade(clip_paths: list, durations: list, sfx_kinds: l
         final_path,
     ]
     print("Short sahneleri yumuşak geçişlerle (crossfade) birleştiriliyor...")
-    subprocess.run(cmd, check=True, capture_output=True)
+    subprocess.run(cmd, check=True, capture_output=True, timeout=120)
 
     # Simdi her gecis noktasina, tam zamaninda bir gecis sesi karistir
     sfx_paths = []
@@ -908,7 +911,7 @@ def concat_shorts_with_crossfade(clip_paths: list, durations: list, sfx_kinds: l
         mixed_path,
     ]
     print("Geçiş sesleri tam zamanında karıştırılıyor...")
-    subprocess.run(cmd2, check=True, capture_output=True)
+    subprocess.run(cmd2, check=True, capture_output=True, timeout=90)
     return mixed_path
 
 
@@ -933,9 +936,17 @@ def process_short(config: dict):
         if not got_gif:
             gif_path = None
 
-        clip_path, duration = make_short_line_clip(subject, text, i, is_hook=(i == 1), gif_path=gif_path)
+        clip_path = None
+        try:
+            clip_path, duration = make_short_line_clip(subject, text, i, is_hook=(i == 1), gif_path=gif_path)
+        except Exception as e:
+            print(f"[Short {i}] SATIR ATLANDI (başarısız oldu): {e}")
+            continue
         clip_paths.append(clip_path)
         durations.append(duration)
+
+    if not clip_paths:
+        raise RuntimeError("Hiçbir satır üretilemedi, Short oluşturulamıyor.")
 
     sfx_kinds = [sfx_kinds_cycle[i % len(sfx_kinds_cycle)] for i in range(len(clip_paths) - 1)]
     final_short = concat_shorts_with_crossfade(clip_paths, durations, sfx_kinds)
