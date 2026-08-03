@@ -662,7 +662,7 @@ def fetch_gif(query: str, out_path: str) -> bool:
 
         # Guvenilir dongu icin GIF'i duzgun bir MP4'e cevir (ses yok, sabit fps)
         cmd = [
-            "ffmpeg", "-y", "-ignore_loop", "0", "-i", raw_gif_path,
+            "ffmpeg", "-y", "-i", raw_gif_path,
             "-vf", "fps=20,scale=400:-2:flags=lanczos",
             "-c:v", "libx264", "-pix_fmt", "yuv420p", "-an",
             out_path,
