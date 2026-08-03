@@ -678,14 +678,15 @@ def fetch_gif(query: str, out_path: str) -> bool:
 
 
 def fetch_freesound_sfx(query: str, out_path: str) -> bool:
-    """Freesound'dan CC0 (telifsiz) lisansli kisa bir ses efekti indirir. Basarisiz olursa False doner."""
+    """Freesound'dan CC0 (telifsiz), kisa (0-3sn) bir ses efekti indirir. Basarisiz olursa False doner."""
     if not FREESOUND_API_KEY:
         return False
     try:
         search_url = (
             "https://freesound.org/apiv2/search/text/"
-            f"?query={urllib.parse.quote(query)}&filter=license:%22Creative+Commons+0%22"
-            f"&fields=id,previews&page_size=1&token={FREESOUND_API_KEY}"
+            f"?query={urllib.parse.quote(query)}"
+            f"&filter=license:%22Creative+Commons+0%22+duration:%5B0+TO+3%5D"
+            f"&sort=score&fields=id,previews,duration&page_size=1&token={FREESOUND_API_KEY}"
         )
         req = urllib.request.Request(search_url)
         with urllib.request.urlopen(req, timeout=20) as resp:
@@ -729,15 +730,19 @@ def make_short_line_clip(subject: str, text: str, index: int, is_hook: bool = Fa
     ref = MAN_REFERENCE_URL if subject == "man" else WOMAN_REFERENCE_URL
     img_path = os.path.join(IMG_DIR, f"short_{index:02d}.jpg")
 
-    prompt = (f"Simple, clean 2D illustration, plain solid white background, no scenery. "
-              f"The character exactly as shown in the reference image (identical face, hair, clothing — "
-              f"do not restyle), waist-up, reacting to this line with a clear, exaggerated, energetic "
-              f"expression: \"{text}\". Include one small, clearly relevant prop or visual element tied "
-              f"directly to the content of this line (for example: a shopping bag, a price tag, an empty "
-              f"wallet, a cash register, a pile of money, a receipt — whatever concretely matches what the "
-              f"line is about), held by or positioned right next to the character. This prop must stay "
-              f"clearly smaller and less prominent than the character, reinforcing the topic visually "
-              f"without overshadowing them. Vertical portrait framing, character centered.")
+    prompt = (f"Bold Pop-Art comic style illustration, thick black outlines, bright flat primary colors "
+              f"(red, yellow, blue), Ben-Day halftone dot shading in the background, plain solid white "
+              f"background, no scenery, comic panel aesthetic reminiscent of classic Pop-Art. "
+              f"The character keeps the exact same face, hairstyle, and clothing design as shown in the "
+              f"reference image (same identity, same silhouette — do not redesign who they are), but "
+              f"rendered with this bold Pop-Art linework and coloring treatment. Waist-up, reacting to this "
+              f"line with a clear, exaggerated, energetic expression: \"{text}\". Include one small, clearly "
+              f"relevant prop or visual element tied directly to the content of this line (for example: a "
+              f"shopping bag, a price tag, an empty wallet, a cash register, a pile of money, a receipt — "
+              f"whatever concretely matches what the line is about), held by or positioned right next to "
+              f"the character, rendered in the same Pop-Art style. This prop must stay clearly smaller and "
+              f"less prominent than the character, reinforcing the topic visually without overshadowing "
+              f"them. Vertical portrait framing, character centered.")
 
     _gemini_generate_image(prompt, img_path, aspect_ratio="9:16", reference_image_url=ref)
     time.sleep(8)  # dakikalik hiz limitine takilmamak icin (uzun videodaki gibi)
@@ -830,8 +835,8 @@ def make_short_line_clip(subject: str, text: str, index: int, is_hook: bool = Fa
 def get_sfx_file(sfx_kind: str, out_path: str):
     """Bir gecis sesi dosyasi hazirlar: once gercek (Freesound, CC0) ses denenir, olmazsa sentetige duser."""
     real_query = {
-        "whoosh": "whoosh swoosh transition", "pop": "pop click",
-        "ding": "ding bell notification", "drum": "drum roll short",
+        "whoosh": "whoosh", "pop": "pop",
+        "ding": "notification bell", "drum": "drum hit",
     }.get(sfx_kind, "pop")
     got_real = fetch_freesound_sfx(real_query, out_path)
     if not got_real:
@@ -901,7 +906,7 @@ def concat_shorts_with_crossfade(clip_paths: list, durations: list, sfx_kinds: l
 
     amix_inputs = "[0:a]" + "".join(delay_labels)
     amix_count = 1 + len(delay_labels)
-    mix_filter = ";".join(delay_parts) + f";{amix_inputs}amix=inputs={amix_count}:duration=first:dropout_transition=0[aout]"
+    mix_filter = ";".join(delay_parts) + f";{amix_inputs}amix=inputs={amix_count}:duration=first:dropout_transition=0:normalize=0[aout]"
 
     cmd2 = [
         "ffmpeg", "-y", "-i", final_path, *sfx_inputs,
