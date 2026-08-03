@@ -255,9 +255,11 @@ Do not include any text, letters, numbers, logos, or badges in the image."""
 
 
 def generate_audio(text: str, index: int, voice_name: str = "en-GB-Neural2-F", language_code: str = "en-GB",
-                    speaking_rate: float = 1.0, pitch: float = 0.0, emphasize_last_words: int = 0) -> str:
+                    speaking_rate: float = 1.0, pitch: float = 0.0, emphasize_last_words: int = 0,
+                    volume_gain_db: float = 8.0) -> str:
     """Google Cloud Text-to-Speech ile seslendirme üretir, mp3 dosya yolu döner.
-    emphasize_last_words > 0 ise, cumlenin son N kelimesi SSML ile vurgulanir (daha carpici teslimat icin)."""
+    emphasize_last_words > 0 ise, cumlenin son N kelimesi SSML ile vurgulanir (daha carpici teslimat icin).
+    volume_gain_db, TTS'in kendi ses seviyesini yukseltir (varsayilan +8dB, daha gur/net konusma icin)."""
     if not GOOGLE_TTS_KEY:
         raise RuntimeError("GOOGLE_TTS_API_KEY tanımlı değil.")
 
@@ -277,7 +279,10 @@ def generate_audio(text: str, index: int, voice_name: str = "en-GB-Neural2-F", l
     payload = {
         "input": input_field,
         "voice": {"languageCode": language_code, "name": voice_name},
-        "audioConfig": {"audioEncoding": "MP3", "speakingRate": speaking_rate, "pitch": pitch},
+        "audioConfig": {
+            "audioEncoding": "MP3", "speakingRate": speaking_rate, "pitch": pitch,
+            "volumeGainDb": volume_gain_db,
+        },
     }
     data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
@@ -417,7 +422,7 @@ def upload_to_youtube(video_path: str, thumb_path: str, meta: dict):
 WOMAN_REFERENCE_URL = "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/woman_mascot.jpg"
 MAN_REFERENCE_URL = "https://raw.githubusercontent.com/karacasigortakemalpasa-hue/video-otomasyon/main/man_mascot.jpg"
 
-STYLE_GUIDE = """[Masterpiece, Best Quality] A detailed 2D digital illustration, clean simple line-work, reminiscent of a graphic novel. The entire scene is monochromatic, dominated by shades of dark grey and charcoal. Only selective warm light and one colored item of clothing on a character break the palette. Highly detailed crosshatched background. Minimal noise, sharp lines. The character's face, hairstyle, and body must match EXACTLY as shown in the provided reference image — do not alter, simplify, or restyle their facial features in any way, only change their pose, expression, and clothing accessory as needed for the scene."""
+STYLE_GUIDE = """Bold Pop-Art comic style illustration, thick black outlines, bright flat primary colors (red, yellow, blue), Ben-Day halftone dot shading in the background, comic panel aesthetic reminiscent of classic Pop-Art. The character keeps the exact same face, hairstyle, and clothing design as shown in the provided reference image (same identity, same silhouette — do not redesign who they are), but rendered with this bold Pop-Art linework and coloring treatment. Only change their pose, expression, and clothing accessory as needed for the scene."""
 
 
 def expand_topic_to_scenes(topic: str, num_scenes: int = 30) -> dict:
@@ -562,14 +567,55 @@ TOPIC: {topic}
 
 Write STRICT JSON (no markdown fences, no commentary, just the JSON object).
 
-FORMAT: 6 to 9 very short, punchy lines, alternating back and forth between the woman and the man like a
-rapid back-and-forth exchange or quick-fire fact reveal (each line under 12 words, quotable, surprising, or
-funny). Line 1 must be a scroll-stopping hook question or bold claim. The LAST line must be a quick, natural
-call to action to follow/subscribe for more (short, not corny).
+FORMAT: Write a coherent, well-structured mini-story with real substance — NOT a series of disconnected
+one-liners. Even though it must stay under ~55 seconds spoken, it must feel like a real, satisfying, complete
+mini-documentary moment, following this exact narrative arc:
+
+1. HOOK (1 line): a scroll-stopping question or bold claim that sets up the debate.
+2. CURIOSITY / COMMON BELIEF (1 line): state the common assumption people have about this topic — the thing
+   most people would guess is true.
+3. WOMAN'S REAL POINT (2 lines): the woman gives a genuine, substantive argument or piece of information —
+   not a one-liner joke, an actual point with real reasoning or a specific detail behind it.
+4. MAN'S REAL COUNTER-POINT (2 lines): the man responds with his own genuine argument or counter-information,
+   equally substantive — this should feel like an actual back-and-forth debate with real content, not two
+   people trading random jokes.
+5. CONCRETE EXAMPLE (1-2 lines, either subject): a specific, relatable, real-world example that illustrates
+   the point just made (e.g. a specific everyday situation, a specific number, a specific scenario).
+6. RESULT / RESOLUTION (1 line): a satisfying conclusion — who is actually right, or a nuanced "it depends
+   on X" resolution. This should feel like a payoff, not a shrug.
+7. SUBSCRIBE CALL-TO-ACTION (1 line): see below.
+
+Each line can be a full natural spoken sentence (not artificially chopped short) — prioritize the content
+being genuinely interesting and coherent over hitting an exact word count. Alternate the "subject" between
+woman and man naturally as the conversation flows, but the STRUCTURE above matters more than strict
+alternation — e.g. the woman can have two consecutive lines in section 3 if that's what a real point needs.
+
+CRITICAL - AVOID GENERIC CLICHÉS: Do not just restate the obvious stereotype with no real information (e.g.
+"women take longer to get ready, men are quick" is NOT enough on its own — that's a cliché everyone already
+believes, not a "surprising fact"). The WOMAN'S REAL POINT and MAN'S REAL COUNTER-POINT sections especially
+MUST include a concrete, specific, plausible detail: an approximate number, percentage, time duration, or a
+specific real-world reason/mechanism (e.g. "the average is 45 minutes vs 15", "it's linked to skincare
+routines with 10+ steps", "grooming products alone add 20 minutes"). If you are not fully certain of an exact
+real statistic, use a clearly reasonable plausible approximation rather than inventing an oddly
+hyper-precise fake number — the goal is to feel genuinely informative and specific, like a real mini-debate
+with actual substance, not a vague generic stereotype restated in different words with nothing new said.
+
+DELIVERY ENERGY: Write the lines with natural spoken energy — use exclamation points, dashes for a held
+beat, and conversational phrasing (contractions, natural interjections like "Wait—", "Okay but—", "Exactly!")
+so the lines read as genuinely animated, excited dialogue rather than flat encyclopedia text being read aloud.
+
+The LAST line must be an engagement-driving call to action, and you must pick ONE of the following styles
+at random for variety (do not always use the same one across episodes):
+- A "vote with your action" hook, e.g. "Like this if you think women win, subscribe if you think men win!"
+- A gender-targeted hook, e.g. "Ladies, hit subscribe. Guys, smash that like button. Let's see who's really watching!"
+- A "which side are you on" hook, e.g. "Comment WOMEN or MEN below — and subscribe to see who's really right!"
+- A true/false-style hook tied to the episode's conclusion, e.g. "If that surprised you, like this. If you already knew, subscribe for more!"
+- A simple but warm hook, e.g. "Subscribe for more men vs women facts every week!"
+Keep it short, natural, energetic — not corny or robotic.
 
 Each line object needs:
 - "subject": "woman" or "man" — whose reaction/face is shown for this line
-- "text": the short spoken line
+- "text": the spoken line
 
 video_meta.title: a short, curiosity-driven, clickable Shorts title (under 55 characters), often phrased as
 a question or bold claim.
@@ -723,12 +769,26 @@ def build_transition_sfx(out_path: str, kind: str = "ding"):
     subprocess.run(cmd, check=True, capture_output=True, timeout=20)
 
 
-def make_short_line_clip(subject: str, text: str, index: int, is_hook: bool = False, gif_path: str = None) -> tuple:
-    """Short icin tek bir satiri (karakter gorseli + ses + hareketli altyazi + GIF sticker) uretir.
-    gif_path verilirse (mp4 formatinda), kosede kucuk bir loop'lu sticker olarak eklenir. Sahneler
-    arasi gecis burada degil, concat_shorts_with_crossfade() asamasinda yumusak xfade ile yapilir."""
+def make_short_line_clip(subject: str, text: str, index: int, is_hook: bool = False, is_subscribe_moment: bool = False) -> tuple:
+    """Short icin tek bir satiri (karakter gorseli + ses + hareketli altyazi + AI Pop-Art cikartmasi) uretir.
+    Dis kaynaklardan GIF cekilmiyor artik - onun yerine ayni Pop-Art tarzinda, AI'in kendi uretttigi kucuk
+    bir cikartma/rozet ekleniyor (guvenilir, tutarli stil). Sahneler arasi gecis burada degil,
+    concat_shorts_with_crossfade() asamasinda yumusak xfade ile yapilir."""
     ref = MAN_REFERENCE_URL if subject == "man" else WOMAN_REFERENCE_URL
     img_path = os.path.join(IMG_DIR, f"short_{index:02d}.jpg")
+
+    if is_subscribe_moment:
+        sticker_note = ("Include a bold Pop-Art comic-book style callout sticker/badge in the corner — a "
+                        "star-burst or circular badge shape with thick black outline, bright red/yellow "
+                        "fill, containing the word \"SUBSCRIBE!\" in bold white comic lettering, with a "
+                        "small arrow or pointing hand graphic in the same style. This badge must be clearly "
+                        "smaller than the character.")
+    else:
+        sticker_note = ("Include a small Pop-Art comic-book style callout sticker/badge in the corner — a "
+                        "star-burst or circular badge shape with thick black outline, bright color fill, "
+                        "containing ONE short punchy comic word relevant to this line's content (for example "
+                        "\"FACT!\", \"WOW!\", \"TRUE?\", \"REALLY?!\", \"MYTH!\" — pick whichever fits the "
+                        "line's tone). This badge must be clearly smaller than the character.")
 
     prompt = (f"Bold Pop-Art comic style illustration, thick black outlines, bright flat primary colors "
               f"(red, yellow, blue), Ben-Day halftone dot shading in the background, plain solid white "
@@ -742,16 +802,17 @@ def make_short_line_clip(subject: str, text: str, index: int, is_hook: bool = Fa
               f"whatever concretely matches what the line is about), held by or positioned right next to "
               f"the character, rendered in the same Pop-Art style. This prop must stay clearly smaller and "
               f"less prominent than the character, reinforcing the topic visually without overshadowing "
-              f"them. Vertical portrait framing, character centered.")
+              f"them. {sticker_note} Vertical portrait framing, character centered.")
 
     _gemini_generate_image(prompt, img_path, aspect_ratio="9:16", reference_image_url=ref)
     time.sleep(8)  # dakikalik hiz limitine takilmamak icin (uzun videodaki gibi)
 
     voice = "en-GB-Neural2-F" if subject == "woman" else "en-GB-Neural2-D"
-    pitch = 2.0 if subject == "woman" else -2.0
+    pitch = 3.0 if subject == "woman" else -3.0
     audio_path = generate_audio(
         text, index, voice_name=voice,
-        speaking_rate=1.12, pitch=pitch, emphasize_last_words=2,
+        speaking_rate=1.15, pitch=pitch, emphasize_last_words=3,
+        volume_gain_db=16.0,  # TTS'in izin verdigi maksimum seviye - net/gur konusma icin
     )
     duration = get_audio_duration(audio_path)
 
@@ -793,18 +854,11 @@ def make_short_line_clip(subject: str, text: str, index: int, is_hook: bool = Fa
         f"zoompan=z='min(zoom+{zoom_rate},{zoom_max})':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':"
         f"d={total_frames}:s=1080x1920:fps={fps}[bg]",
         f"[bg]{captions_chain}[bg2]",
+        "[1:a]volume=2.5[aboost]",
     ]
 
     current_label = "bg2"
     has_logo = os.path.exists(logo_path)
-    has_gif = gif_path and os.path.exists(gif_path)
-
-    if has_gif:
-        inputs += ["-stream_loop", "-1", "-i", gif_path]
-        filter_parts.append(f"[{next_input_idx}:v]scale=280:-1[gifstk]")
-        filter_parts.append(f"[{current_label}][gifstk]overlay=x=W-w-30:y=H-h-350:shortest=1[bg4]")
-        current_label = "bg4"
-        next_input_idx += 1
 
     if has_logo:
         inputs += ["-i", logo_path]
@@ -814,7 +868,6 @@ def make_short_line_clip(subject: str, text: str, index: int, is_hook: bool = Fa
         next_input_idx += 1
 
     if current_label != "out":
-        # Ne gif ne logo eklendi, son etiketi dogrudan [out] yapalim
         filter_parts[-1] = filter_parts[-1].replace(f"[{current_label}]", "[out]")
 
     filter_complex = ";".join(filter_parts)
@@ -822,14 +875,15 @@ def make_short_line_clip(subject: str, text: str, index: int, is_hook: bool = Fa
     cmd = [
         "ffmpeg", "-y", *inputs,
         "-filter_complex", filter_complex,
-        "-map", "[out]", "-map", "1:a",
+        "-map", "[out]", "-map", "[aboost]",
         "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p",
-        "-c:a", "aac", "-b:a", "160k", "-ar", "44100", "-ac", "2",
+        "-c:a", "aac", "-b:a", "192k", "-ar", "44100", "-ac", "2",
         "-shortest", "-t", str(duration),
         clip_path,
     ]
     subprocess.run(cmd, check=True, capture_output=True, timeout=90)
     return clip_path, duration
+
 
 
 def get_sfx_file(sfx_kind: str, out_path: str):
@@ -898,13 +952,13 @@ def concat_shorts_with_crossfade(clip_paths: list, durations: list, sfx_kinds: l
         sfx_inputs += ["-i", p]
 
     delay_labels = []
-    delay_parts = []
+    delay_parts = ["[0:a]volume=1.0[narration]"]
     for i, (ts, sfx_in_idx) in enumerate(zip(transition_timestamps, range(1, len(sfx_paths) + 1))):
         delay_ms = int(ts * 1000)
-        delay_parts.append(f"[{sfx_in_idx}:a]adelay={delay_ms}|{delay_ms},volume=1.4[sfxd{i}]")
+        delay_parts.append(f"[{sfx_in_idx}:a]adelay={delay_ms}|{delay_ms},volume=0.5[sfxd{i}]")
         delay_labels.append(f"[sfxd{i}]")
 
-    amix_inputs = "[0:a]" + "".join(delay_labels)
+    amix_inputs = "[narration]" + "".join(delay_labels)
     amix_count = 1 + len(delay_labels)
     mix_filter = ";".join(delay_parts) + f";{amix_inputs}amix=inputs={amix_count}:duration=first:dropout_transition=0:normalize=0[aout]"
 
@@ -931,19 +985,12 @@ def process_short(config: dict):
     for i, line in enumerate(lines, start=1):
         subject = line.get("subject", "woman")
         text = line.get("text", "")
+        is_last = (i == len(lines))
         print(f"[Short {i}] üretiliyor ({subject})...")
-
-        # Her satir icin, o satirin kendi metnine gore konuya uygun bir GIF cekmeyi dene.
-        # Son satir (abone ol cagrisi) icin ozel olarak 'subscribe/follow' temali bir GIF denenir.
-        gif_query = "subscribe follow celebrate" if i == len(lines) else text
-        gif_path = os.path.join(IMG_DIR, f"line_gif_{i:02d}.mp4")
-        got_gif = fetch_gif(gif_query, gif_path)
-        if not got_gif:
-            gif_path = None
 
         clip_path = None
         try:
-            clip_path, duration = make_short_line_clip(subject, text, i, is_hook=(i == 1), gif_path=gif_path)
+            clip_path, duration = make_short_line_clip(subject, text, i, is_hook=(i == 1), is_subscribe_moment=is_last)
         except Exception as e:
             print(f"[Short {i}] SATIR ATLANDI (başarısız oldu): {e}")
             continue
