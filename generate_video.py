@@ -70,7 +70,7 @@ GEMINI_KEY = os.environ.get("GEMINI_API_KEY", "")
 GCP_SERVICE_ACCOUNT_JSON = os.environ.get("GCP_SERVICE_ACCOUNT_JSON", "")
 GCP_PROJECT_ID = os.environ.get("GCP_PROJECT_ID", "rosy-embassy-473607-a3")
 GCP_REGION = "global"
-GIPHY_API_KEY = os.environ.get("GIPHY_API_KEY", "")
+GIPHY_API_KEY = os.environ.get("GIPHY_API_KEY", "").strip()
 FREESOUND_API_KEY = os.environ.get("FREESOUND_API_KEY", "")
 
 _vertex_access_token_cache = {"token": None}
@@ -638,11 +638,14 @@ def fetch_gif(query: str, out_path: str) -> bool:
     out_path'in uzantisi .mp4 olmali. Basarili olursa True, olmazsa False doner (cokmez)."""
     if not GIPHY_API_KEY:
         return False
+    print(f"(GIPHY_API_KEY uzunluğu: {len(GIPHY_API_KEY)} karakter — normalde ~32 civarı olmalı)")
+    # Sadece ilk birkaç anahtar kelimeyi kullan (kisa/basit sorgu, URI limitine takilmamak icin)
+    short_query = " ".join(query.split()[:4])
     raw_gif_path = out_path.replace(".mp4", "_raw.gif")
     try:
         search_url = (
             f"https://api.giphy.com/v1/gifs/search?api_key={GIPHY_API_KEY}"
-            f"&q={urllib.parse.quote(query)}&limit=1&rating=g"
+            f"&q={urllib.parse.quote(short_query)}&limit=1&rating=g"
         )
         req = urllib.request.Request(search_url)
         with urllib.request.urlopen(req, timeout=20) as resp:
