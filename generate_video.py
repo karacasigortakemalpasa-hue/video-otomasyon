@@ -737,6 +737,7 @@ def make_short_line_clip(subject: str, text: str, index: int, is_hook: bool = Fa
               f"without overshadowing them. Vertical portrait framing, character centered.")
 
     _gemini_generate_image(prompt, img_path, aspect_ratio="9:16", reference_image_url=ref)
+    time.sleep(8)  # dakikalik hiz limitine takilmamak icin (uzun videodaki gibi)
 
     voice = "en-GB-Neural2-F" if subject == "woman" else "en-GB-Neural2-D"
     pitch = 2.0 if subject == "woman" else -2.0
