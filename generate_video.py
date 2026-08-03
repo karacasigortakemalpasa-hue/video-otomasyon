@@ -254,16 +254,30 @@ Do not include any text, letters, numbers, logos, or badges in the image."""
 
 
 
-def generate_audio(text: str, index: int, voice_name: str = "en-GB-Neural2-F", language_code: str = "en-GB") -> str:
-    """Google Cloud Text-to-Speech ile seslendirme üretir, mp3 dosya yolu döner."""
+def generate_audio(text: str, index: int, voice_name: str = "en-GB-Neural2-F", language_code: str = "en-GB",
+                    speaking_rate: float = 1.0, pitch: float = 0.0, emphasize_last_words: int = 0) -> str:
+    """Google Cloud Text-to-Speech ile seslendirme üretir, mp3 dosya yolu döner.
+    emphasize_last_words > 0 ise, cumlenin son N kelimesi SSML ile vurgulanir (daha carpici teslimat icin)."""
     if not GOOGLE_TTS_KEY:
         raise RuntimeError("GOOGLE_TTS_API_KEY tanımlı değil.")
 
+    if emphasize_last_words > 0:
+        words = text.split()
+        if len(words) > emphasize_last_words:
+            head = " ".join(words[:-emphasize_last_words])
+            tail = " ".join(words[-emphasize_last_words:])
+            ssml_text = f"<speak>{head} <emphasis level=\"strong\">{tail}</emphasis></speak>"
+        else:
+            ssml_text = f"<speak><emphasis level=\"strong\">{text}</emphasis></speak>"
+        input_field = {"ssml": ssml_text}
+    else:
+        input_field = {"text": text}
+
     url = f"https://texttospeech.googleapis.com/v1/text:synthesize?key={GOOGLE_TTS_KEY}"
     payload = {
-        "input": {"text": text},
+        "input": input_field,
         "voice": {"languageCode": language_code, "name": voice_name},
-        "audioConfig": {"audioEncoding": "MP3", "speakingRate": 1.0, "pitch": 0.0},
+        "audioConfig": {"audioEncoding": "MP3", "speakingRate": speaking_rate, "pitch": pitch},
     }
     data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
@@ -620,9 +634,11 @@ Output EXACTLY this schema:
 
 
 def fetch_gif(query: str, out_path: str) -> bool:
-    """GIPHY'den konuya uygun bir GIF indirir. Basarili olursa True, olmazsa False doner (cokmez)."""
+    """GIPHY'den konuya uygun bir GIF indirir, guvenilir dongu icin hemen MP4'e cevirir.
+    out_path'in uzantisi .mp4 olmali. Basarili olursa True, olmazsa False doner (cokmez)."""
     if not GIPHY_API_KEY:
         return False
+    raw_gif_path = out_path.replace(".mp4", "_raw.gif")
     try:
         search_url = (
             f"https://api.giphy.com/v1/gifs/search?api_key={GIPHY_API_KEY}"
@@ -638,9 +654,18 @@ def fetch_gif(query: str, out_path: str) -> bool:
         req2 = urllib.request.Request(gif_url)
         with urllib.request.urlopen(req2, timeout=30) as resp2:
             gif_bytes = resp2.read()
-        with open(out_path, "wb") as f:
+        with open(raw_gif_path, "wb") as f:
             f.write(gif_bytes)
-        return True
+
+        # Guvenilir dongu icin GIF'i duzgun bir MP4'e cevir (ses yok, sabit fps)
+        cmd = [
+            "ffmpeg", "-y", "-ignore_loop", "0", "-i", raw_gif_path,
+            "-vf", "fps=20,scale=400:-2:flags=lanczos",
+            "-c:v", "libx264", "-pix_fmt", "yuv420p", "-an",
+            out_path,
+        ]
+        subprocess.run(cmd, check=True, capture_output=True)
+        return os.path.exists(out_path)
     except Exception as e:
         print(f"UYARI: GIPHY GIF çekilemedi ({query}): {e}")
         return False
@@ -692,23 +717,30 @@ def build_transition_sfx(out_path: str, kind: str = "ding"):
 
 
 def make_short_line_clip(subject: str, text: str, index: int, is_hook: bool = False, gif_path: str = None) -> tuple:
-    """Short icin tek bir satiri (karakter gorseli + ses + hareketli altyazi + renkli flas gecisi) uretir.
-    gif_path verilirse, kosede kucuk bir loop'lu GIF sticker olarak eklenir."""
+    """Short icin tek bir satiri (karakter gorseli + ses + hareketli altyazi + GIF sticker) uretir.
+    gif_path verilirse (mp4 formatinda), kosede kucuk bir loop'lu sticker olarak eklenir. Sahneler
+    arasi gecis burada degil, concat_shorts_with_crossfade() asamasinda yumusak xfade ile yapilir."""
     ref = MAN_REFERENCE_URL if subject == "man" else WOMAN_REFERENCE_URL
     img_path = os.path.join(IMG_DIR, f"short_{index:02d}.jpg")
 
     prompt = (f"Simple, clean 2D illustration, plain solid white background, no scenery. "
               f"The character exactly as shown in the reference image (identical face, hair, clothing — "
-              f"do not restyle), waist-up, reacting to this line with a clear, exaggerated expression: \"{text}\". "
-              f"Include one small, clearly relevant prop or visual element tied directly to the content of "
-              f"this line (for example: a shopping bag, a price tag, an empty wallet, a cash register, a "
-              f"pile of money, a receipt — whatever concretely matches what the line is about), held by or "
-              f"positioned right next to the character. This prop must stay clearly smaller and less "
-              f"prominent than the character, reinforcing the topic visually without overshadowing them. "
-              f"Vertical portrait framing, character centered.")
+              f"do not restyle), waist-up, reacting to this line with a clear, exaggerated, energetic "
+              f"expression: \"{text}\". Include one small, clearly relevant prop or visual element tied "
+              f"directly to the content of this line (for example: a shopping bag, a price tag, an empty "
+              f"wallet, a cash register, a pile of money, a receipt — whatever concretely matches what the "
+              f"line is about), held by or positioned right next to the character. This prop must stay "
+              f"clearly smaller and less prominent than the character, reinforcing the topic visually "
+              f"without overshadowing them. Vertical portrait framing, character centered.")
 
     _gemini_generate_image(prompt, img_path, aspect_ratio="9:16", reference_image_url=ref)
-    audio_path = generate_audio(text, index, voice_name="en-GB-Neural2-F" if subject == "woman" else "en-GB-Neural2-D")
+
+    voice = "en-GB-Neural2-F" if subject == "woman" else "en-GB-Neural2-D"
+    pitch = 2.0 if subject == "woman" else -2.0
+    audio_path = generate_audio(
+        text, index, voice_name=voice,
+        speaking_rate=1.12, pitch=pitch, emphasize_last_words=2,
+    )
     duration = get_audio_duration(audio_path)
 
     font = "font.ttf"
@@ -719,9 +751,6 @@ def make_short_line_clip(subject: str, text: str, index: int, is_hook: bool = Fa
     # Hareket: kanca (ilk) cumlede hizli zoom-punch, digerlerinde yumusak Ken Burns
     zoom_rate = "0.0035" if is_hook else "0.0009"
     zoom_max = "1.18" if is_hook else "1.10"
-
-    flash_color = "0x2E86AB" if subject == "man" else "0xE07A5F"
-    flash_dur = min(0.15, max(0.05, duration * 0.12))
 
     # Alt yazi: kelime obekleri halinde, sirayla belirip kaybolan "flash caption" tarzi
     words = text.split()
@@ -752,17 +781,16 @@ def make_short_line_clip(subject: str, text: str, index: int, is_hook: bool = Fa
         f"zoompan=z='min(zoom+{zoom_rate},{zoom_max})':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':"
         f"d={total_frames}:s=1080x1920:fps={fps}[bg]",
         f"[bg]{captions_chain}[bg2]",
-        f"[bg2]fade=t=in:st=0:d={flash_dur:.3f}:color={flash_color}[bg3]",
     ]
 
-    current_label = "bg3"
+    current_label = "bg2"
     has_logo = os.path.exists(logo_path)
     has_gif = gif_path and os.path.exists(gif_path)
 
     if has_gif:
         inputs += ["-stream_loop", "-1", "-i", gif_path]
         filter_parts.append(f"[{next_input_idx}:v]scale=280:-1[gifstk]")
-        filter_parts.append(f"[{current_label}][gifstk]overlay=x=W-w-30:y=H-h-350[bg4]")
+        filter_parts.append(f"[{current_label}][gifstk]overlay=x=W-w-30:y=H-h-350:shortest=1[bg4]")
         current_label = "bg4"
         next_input_idx += 1
 
@@ -784,7 +812,7 @@ def make_short_line_clip(subject: str, text: str, index: int, is_hook: bool = Fa
         "-filter_complex", filter_complex,
         "-map", "[out]", "-map", "1:a",
         "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p",
-        "-c:a", "aac", "-b:a", "160k", "-ar", "44100",
+        "-c:a", "aac", "-b:a", "160k", "-ar", "44100", "-ac", "2",
         "-shortest", "-t", str(duration),
         clip_path,
     ]
@@ -792,64 +820,121 @@ def make_short_line_clip(subject: str, text: str, index: int, is_hook: bool = Fa
     return clip_path, duration
 
 
-def build_transition_clip(sfx_kind: str, color: str, out_path: str):
-    """Gecis sesini + kisa renkli flas karesini birlestirip araya eklenecek bir video klip yapar.
-    Once gercek (Freesound, CC0) ses denenir, olmazsa sentetik sese duser."""
-    sfx_path = out_path.replace(".mp4", ".mp3")
-    real_query = {"whoosh": "whoosh swoosh transition", "pop": "pop click", "ding": "ding bell notification", "drum": "drum roll short"}.get(sfx_kind, "pop")
-    got_real = fetch_freesound_sfx(real_query, sfx_path)
+def get_sfx_file(sfx_kind: str, out_path: str):
+    """Bir gecis sesi dosyasi hazirlar: once gercek (Freesound, CC0) ses denenir, olmazsa sentetige duser."""
+    real_query = {
+        "whoosh": "whoosh swoosh transition", "pop": "pop click",
+        "ding": "ding bell notification", "drum": "drum roll short",
+    }.get(sfx_kind, "pop")
+    got_real = fetch_freesound_sfx(real_query, out_path)
     if not got_real:
-        build_transition_sfx(sfx_path, kind=sfx_kind)
+        build_transition_sfx(out_path, kind=sfx_kind)
 
-    duration = min(get_audio_duration(sfx_path), 1.0)  # gercek sesler bazen uzun olabilir, 1sn ile sinirla
+
+def concat_shorts_with_crossfade(clip_paths: list, durations: list, sfx_kinds: list, transition: float = 0.3) -> str:
+    """Short sahnelerini yumusak crossfade (video+ses) ile birlestirir, VE her gecis noktasina
+    tam zamaninda, gercekten duyulan bir gecis sesi karistirir."""
+    final_path = os.path.join(OUTPUT_DIR, "final_short_raw.mp4")
+
+    if len(clip_paths) == 1:
+        subprocess.run(["cp", clip_paths[0], final_path], check=True)
+        return final_path
+
+    inputs = []
+    for p in clip_paths:
+        inputs += ["-i", p]
+
+    filter_parts = []
+    prev_v, prev_a = "0:v", "0:a"
+    running_offset = durations[0] - transition
+    transition_timestamps = []
+
+    for i in range(1, len(clip_paths)):
+        vout, aout = f"v{i}", f"a{i}"
+        filter_parts.append(f"[{prev_v}][{i}:v]xfade=transition=fade:duration={transition}:offset={running_offset:.3f}[{vout}]")
+        filter_parts.append(f"[{prev_a}][{i}:a]acrossfade=d={transition}[{aout}]")
+        transition_timestamps.append(running_offset + transition / 2)
+        prev_v, prev_a = vout, aout
+        if i < len(clip_paths) - 1:
+            running_offset += durations[i] - transition
+
+    filter_complex = ";".join(filter_parts)
     cmd = [
-        "ffmpeg", "-y",
-        "-f", "lavfi", "-i", f"color=c={color}:s=1080x1920:d={duration:.3f}",
-        "-i", sfx_path,
+        "ffmpeg", "-y", *inputs,
+        "-filter_complex", filter_complex,
+        "-map", f"[{prev_v}]", "-map", f"[{prev_a}]",
         "-c:v", "libx264", "-preset", "medium", "-crf", "20", "-pix_fmt", "yuv420p",
-        "-c:a", "aac", "-b:a", "160k", "-ar", "44100",
-        "-t", f"{duration:.3f}",
-        out_path,
+        "-c:a", "aac", "-ar", "44100", "-ac", "2",
+        final_path,
     ]
+    print("Short sahneleri yumuşak geçişlerle (crossfade) birleştiriliyor...")
     subprocess.run(cmd, check=True, capture_output=True)
+
+    # Simdi her gecis noktasina, tam zamaninda bir gecis sesi karistir
+    sfx_paths = []
+    for i, kind in enumerate(sfx_kinds[:len(transition_timestamps)]):
+        sfx_path = os.path.join(AUDIO_DIR, f"transition_sfx_{i:02d}.mp3")
+        get_sfx_file(kind, sfx_path)
+        sfx_paths.append(sfx_path)
+
+    if not sfx_paths:
+        return final_path
+
+    mixed_path = os.path.join(OUTPUT_DIR, "final_short.mp4")
+    sfx_inputs = []
+    for p in sfx_paths:
+        sfx_inputs += ["-i", p]
+
+    delay_labels = []
+    delay_parts = []
+    for i, (ts, sfx_in_idx) in enumerate(zip(transition_timestamps, range(1, len(sfx_paths) + 1))):
+        delay_ms = int(ts * 1000)
+        delay_parts.append(f"[{sfx_in_idx}:a]adelay={delay_ms}|{delay_ms},volume=1.4[sfxd{i}]")
+        delay_labels.append(f"[sfxd{i}]")
+
+    amix_inputs = "[0:a]" + "".join(delay_labels)
+    amix_count = 1 + len(delay_labels)
+    mix_filter = ";".join(delay_parts) + f";{amix_inputs}amix=inputs={amix_count}:duration=first:dropout_transition=0[aout]"
+
+    cmd2 = [
+        "ffmpeg", "-y", "-i", final_path, *sfx_inputs,
+        "-filter_complex", mix_filter,
+        "-map", "0:v", "-map", "[aout]",
+        "-c:v", "copy", "-c:a", "aac", "-ar", "44100", "-ac", "2",
+        mixed_path,
+    ]
+    print("Geçiş sesleri tam zamanında karıştırılıyor...")
+    subprocess.run(cmd2, check=True, capture_output=True)
+    return mixed_path
 
 
 def process_short(config: dict):
     """Tamamen bagimsiz bir Shorts uretim + yukleme akisi."""
     lines = config["lines"]
     meta = config.get("video_meta", {})
-    sfx_kinds = ["whoosh", "pop", "ding", "drum"]
-
-    # Kanca (ilk) cumle icin GIPHY'den konuyla ilgili bir GIF cekmeyi dene (basarisiz olursa sorun degil)
-    hook_gif_path = os.path.join(IMG_DIR, "hook.gif")
-    gif_query = meta.get("title") or (lines[0].get("text") if lines else "reaction")
-    got_gif = fetch_gif(gif_query, hook_gif_path)
-    if not got_gif:
-        hook_gif_path = None
-        print("GIF çekilemedi ya da GIPHY_API_KEY tanımlı değil, GIF'siz devam ediliyor.")
+    sfx_kinds_cycle = ["whoosh", "pop", "ding", "drum"]
 
     clip_paths = []
+    durations = []
     for i, line in enumerate(lines, start=1):
         subject = line.get("subject", "woman")
+        text = line.get("text", "")
         print(f"[Short {i}] üretiliyor ({subject})...")
-        gif_for_this_line = hook_gif_path if i == 1 else None
-        clip_path, _ = make_short_line_clip(subject, line.get("text", ""), i, is_hook=(i == 1), gif_path=gif_for_this_line)
-        clip_paths.append(clip_path)
-        if i < len(lines):
-            next_subject = lines[i].get("subject", "woman")
-            flash_color = "0x2E86AB" if next_subject == "man" else "0xE07A5F"
-            trans_path = os.path.join(CLIP_DIR, f"trans_{i:02d}.mp4")
-            build_transition_clip(sfx_kinds[i % len(sfx_kinds)], flash_color, trans_path)
-            clip_paths.append(trans_path)
 
-    final_short = os.path.join(OUTPUT_DIR, "final_short.mp4")
-    list_file = os.path.join(OUTPUT_DIR, "short_concat_list.txt")
-    with open(list_file, "w") as f:
-        for p in clip_paths:
-            f.write(f"file '{os.path.abspath(p)}'\n")
-    cmd = ["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", list_file, "-c", "copy", final_short]
-    print("Short sahneleri birleştiriliyor...")
-    subprocess.run(cmd, check=True, capture_output=True)
+        # Her satir icin, o satirin kendi metnine gore konuya uygun bir GIF cekmeyi dene.
+        # Son satir (abone ol cagrisi) icin ozel olarak 'subscribe/follow' temali bir GIF denenir.
+        gif_query = "subscribe follow celebrate" if i == len(lines) else text
+        gif_path = os.path.join(IMG_DIR, f"line_gif_{i:02d}.mp4")
+        got_gif = fetch_gif(gif_query, gif_path)
+        if not got_gif:
+            gif_path = None
+
+        clip_path, duration = make_short_line_clip(subject, text, i, is_hook=(i == 1), gif_path=gif_path)
+        clip_paths.append(clip_path)
+        durations.append(duration)
+
+    sfx_kinds = [sfx_kinds_cycle[i % len(sfx_kinds_cycle)] for i in range(len(clip_paths) - 1)]
+    final_short = concat_shorts_with_crossfade(clip_paths, durations, sfx_kinds)
 
     print(f"\nShort hazır: {final_short}")
     upload_to_youtube(final_short, None, meta)
