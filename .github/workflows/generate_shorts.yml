@@ -3,8 +3,8 @@ name: Short Uret
 on:
   workflow_dispatch:
   schedule:
-    # Uzun video saatlerinden (UTC 00,06,12,18) tam 1 saat once calisir: UTC 23,05,11,17
-    - cron: '0 23,5,11,17 * * *'
+    # Gunde 8 kez calisir (her 3 saatte bir) - bu kanalda Short'a agirlik verildigi icin
+    - cron: '0 */3 * * *'
 
 permissions:
   contents: write

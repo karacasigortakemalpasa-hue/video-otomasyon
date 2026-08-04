@@ -6,7 +6,8 @@ on:
     # Her gun Turkiye saatiyle 23:00 (UTC 20:00) calisir. Saati degistirmek icin
     # asagidaki '0 20 * * *' kismini duzenle (UTC saat * gun format).
     # Her 6 saatte bir (gunde 4 kez) calisir - kredinin 90 gunluk sure icinde dengeli tukenmesi icin.
-    - cron: '0 */6 * * *'
+    # Gunde 2 kez calisir (UTC 03:00 ve 15:00 = Turkiye saatiyle 06:00 ve 18:00)
+    - cron: '0 3,15 * * *'
 
 permissions:
   contents: write
