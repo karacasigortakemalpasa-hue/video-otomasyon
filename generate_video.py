@@ -205,10 +205,10 @@ def generate_thumbnail(thumb_cfg: dict, meta: dict = None) -> str:
     right_prompt = thumb_cfg.get("right_pose_prompt", "standing confidently")
     headline = thumb_cfg.get("headline_text") or (meta or {}).get("title", "")
 
-    scene_prompt = f"""Create a single richly detailed, dramatic comic-book style illustration, 16:9 widescreen, full frame, one continuous plain white background — no panels, no borders, no separate colored zones, both characters share the exact same seamless white background.
-On the LEFT side of the frame: the woman, EXACTLY as shown in her reference image (identical face, hair, and clothing — do not restyle or redesign her), {left_prompt}.
-On the RIGHT side of the frame: the man, EXACTLY as shown in his reference image (identical face, hair, and clothing — do not restyle or redesign him), {right_prompt}.
-Both characters large, filling most of the frame height, three-quarter angle, bold dynamic shading and dramatic expression for visual impact. Leave the center-top area and a small gap between the two characters clear of any characters or objects (this space will have text and a logo added afterward).
+    scene_prompt = f"""Create a single bold Pop-Art comic style illustration, 16:9 widescreen, full frame, one continuous plain white background — no panels, no borders, no separate colored zones, both characters share the exact same seamless white background. Thick black outlines, bright flat primary colors (red, yellow, blue), Ben-Day halftone dot shading, classic Pop-Art comic aesthetic throughout.
+On the LEFT side of the frame: the woman, keeping the exact same face, hair, and clothing design as shown in her reference image (same identity — do not redesign her), rendered in this bold Pop-Art style, {left_prompt}.
+On the RIGHT side of the frame: the man, keeping the exact same face, hair, and clothing design as shown in his reference image (same identity — do not redesign him), rendered in this bold Pop-Art style, {right_prompt}.
+Both characters large, filling most of the frame height, three-quarter angle, bold dynamic Pop-Art shading and dramatic expression for visual impact. Leave the center-top area and a small gap between the two characters clear of any characters or objects (this space will have text and a logo added afterward).
 Do not include any text, letters, numbers, logos, or badges in the image."""
 
     final_thumb = os.path.join(OUTPUT_DIR, "thumbnail.jpg")
@@ -583,12 +583,15 @@ mini-documentary moment, following this exact narrative arc:
    the point just made (e.g. a specific everyday situation, a specific number, a specific scenario).
 6. RESULT / RESOLUTION (1 line): a satisfying conclusion — who is actually right, or a nuanced "it depends
    on X" resolution. This should feel like a payoff, not a shrug.
-7. SUBSCRIBE CALL-TO-ACTION (1 line): see below.
+7. SUBSCRIBE SECTION (1-2 lines): see below.
 
 Each line can be a full natural spoken sentence (not artificially chopped short) — prioritize the content
-being genuinely interesting and coherent over hitting an exact word count. Alternate the "subject" between
-woman and man naturally as the conversation flows, but the STRUCTURE above matters more than strict
-alternation — e.g. the woman can have two consecutive lines in section 3 if that's what a real point needs.
+being genuinely interesting and coherent over hitting an exact word count. Do NOT sacrifice quality or
+substance to keep the video shorter — if the debate genuinely needs a bit more room to feel complete and
+satisfying, let it run a little longer; a slightly longer, genuinely engaging Short beats a rushed, hollow
+one. Alternate the "subject" between woman and man naturally as the conversation flows, but the STRUCTURE
+above matters more than strict alternation — e.g. the woman can have two consecutive lines in section 3 if
+that's what a real point needs.
 
 CRITICAL - AVOID GENERIC CLICHÉS: Do not just restate the obvious stereotype with no real information (e.g.
 "women take longer to get ready, men are quick" is NOT enough on its own — that's a cliché everyone already
@@ -604,8 +607,12 @@ DELIVERY ENERGY: Write the lines with natural spoken energy — use exclamation 
 beat, and conversational phrasing (contractions, natural interjections like "Wait—", "Okay but—", "Exactly!")
 so the lines read as genuinely animated, excited dialogue rather than flat encyclopedia text being read aloud.
 
-The LAST line must be an engagement-driving call to action, and you must pick ONE of the following styles
-at random for variety (do not always use the same one across episodes):
+SUBSCRIBE SECTION (can be 1-2 lines, don't hesitate to use 2 if it makes the ask stronger): optionally add one
+short line BEFORE the final call-to-action that gives a genuine reason to subscribe tied to this channel's
+identity (e.g. "This channel breaks down men vs women science every single day.", "We've got dozens more of
+these battles waiting for you.") — a real, confident reason, not filler — followed by the final punchy call
+to action itself. You must pick ONE style at random for that final line, for variety (do not always use the
+same one across episodes):
 - A "vote with your action" hook, e.g. "Like this if you think women win, subscribe if you think men win!"
 - A gender-targeted hook, e.g. "Ladies, hit subscribe. Guys, smash that like button. Let's see who's really watching!"
 - A "which side are you on" hook, e.g. "Comment WOMEN or MEN below — and subscribe to see who's really right!"
