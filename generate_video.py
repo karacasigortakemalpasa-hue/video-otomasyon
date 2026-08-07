@@ -305,8 +305,10 @@ def get_audio_duration(path: str) -> float:
     return float(result.stdout.strip())
 
 
-def make_scene_clip(image_path: str, audio_path: str, index: int, subtitle_text: str = "") -> str:
-    """Sabit görsele Ken Burns efekti + opsiyonel altyazı uygulayıp sesle birleştirir."""
+def make_scene_clip(image_path: str, audio_path: str, index: int, subtitle_text: str = "", flash_caption: bool = False) -> str:
+    """Sabit görsele Ken Burns efekti + opsiyonel altyazı uygulayıp sesle birleştirir.
+    flash_caption=True ise (ilk/kanca sahnede), altyazı tek blok yerine kelime öbekleri halinde
+    hızlıca değişerek görünür - ilk saniyelerde 'pattern interrupt' etkisi için (VidIQ önerisi)."""
     duration = get_audio_duration(audio_path)
     fps = 30
     total_frames = int(duration * fps)
@@ -319,12 +321,26 @@ def make_scene_clip(image_path: str, audio_path: str, index: int, subtitle_text:
         f"zoompan=z='min(zoom+0.0006,1.25)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={total_frames}:s=1920x1080:fps={fps}",
     ]
 
-    if subtitle_text:
+    font, fontsize = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 34
+    if subtitle_text and flash_caption:
+        words = subtitle_text.split()
+        chunk_size = 2
+        chunks = [" ".join(words[i:i + chunk_size]) for i in range(0, len(words), chunk_size)] or [""]
+        seg_dur = duration / len(chunks)
+        for i, chunk in enumerate(chunks):
+            safe_chunk = chunk.replace("'", "\u2019").replace(":", "\\:").replace(",", "\\,")
+            start, end = i * seg_dur, (i + 1) * seg_dur
+            vf_parts.append(
+                f"drawtext=fontfile={font}:text='{safe_chunk}':fontcolor=white:fontsize=44:"
+                f"borderw=4:bordercolor=black:x=(w-text_w)/2:y=h-170:"
+                f"enable='between(t,{start:.3f},{end:.3f})'"
+            )
+    elif subtitle_text:
         wrapped = wrap_text(subtitle_text)
         safe_text = wrapped.replace("'", "\u2019").replace(":", "\\:").replace(",", "\\,")
         vf_parts.append(
-            "drawtext=fontfile=/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf:"
-            f"text='{safe_text}':fontcolor=white:fontsize=34:"
+            f"drawtext=fontfile={font}:"
+            f"text='{safe_text}':fontcolor=white:fontsize={fontsize}:"
             "borderw=3:bordercolor=black:x=(w-text_w)/2:y=h-170:"
             "line_spacing=6"
         )
@@ -454,7 +470,14 @@ Rules:
 - Each "narration" is 1-2 short spoken sentences in English, natural conversational documentary tone,
   building a coherent narrative arc: hook -> the research on one side -> the research on the other side ->
   what the comparison reveals -> the explanation -> whether it holds up today -> a reflective closing question.
-- The FIRST scene must open with an intriguing hook about the comparison, no title card needed.
+- The FIRST scene's narration must NEVER start with a greeting, intro, or throat-clearing ("Hey guys",
+  "Today we're talking about...", "Let's discuss..."). Lead IMMEDIATELY with the single most striking,
+  specific claim or number from this episode — the most surprising thing a viewer will learn, stated
+  upfront, not teased. Zero setup, all payoff, in the very first line. No title card needed.
+- Roughly two-thirds of the way through the episode, insert ONE natural mid-video comment-bait line into
+  whichever scene fits best — a short line inviting viewers to engage RIGHT NOW rather than waiting until
+  the end (e.g. "Comment 'TEAM WOMEN' or 'TEAM MEN' right now if you already have a guess."). It must feel
+  like a natural part of the narration, not a jarring interruption.
 - The LAST scene must end with a reflective question inviting viewers to comment their opinion, followed by
   a brief, natural "Subscribe for more." (not pushy).
 - Each "image_prompt" must describe a specific, concrete visual action/scene (following the style guide
@@ -571,7 +594,11 @@ FORMAT: Write a coherent, well-structured mini-story with real substance — NOT
 one-liners. Even though it must stay under ~55 seconds spoken, it must feel like a real, satisfying, complete
 mini-documentary moment, following this exact narrative arc:
 
-1. HOOK (1 line): a scroll-stopping question or bold claim that sets up the debate.
+1. HOOK (1 line): NEVER start with a greeting, intro, or throat-clearing ("Hey guys", "Today we're talking
+   about...", "Let's discuss..."). Lead IMMEDIATELY with the single most striking, specific claim or number
+   from this episode — the most surprising thing a viewer will learn, stated upfront, not teased. E.g. instead
+   of "Let's talk about who has a better sense of direction" write "Men read maps 2x more accurately than
+   women — here's the real reason why." Zero setup, all payoff, in the very first line.
 2. CURIOSITY / COMMON BELIEF (1 line): state the common assumption people have about this topic — the thing
    most people would guess is true.
 3. WOMAN'S REAL POINT (2 lines): the woman gives a genuine, substantive argument or piece of information —
@@ -581,6 +608,10 @@ mini-documentary moment, following this exact narrative arc:
    people trading random jokes.
 5. CONCRETE EXAMPLE (1-2 lines, either subject): a specific, relatable, real-world example that illustrates
    the point just made (e.g. a specific everyday situation, a specific number, a specific scenario).
+5.5. MID-VIDEO COMMENT BAIT (1 line): right after the example, drop in a short, natural line that invites
+   viewers to engage RIGHT NOW rather than waiting until the end — e.g. "Comment 'TEAM WOMEN' or 'TEAM MEN'
+   right now if you already have a guess." This should feel like a natural part of the conversation, not a
+   jarring interruption.
 6. RESULT / RESOLUTION (1 line): a satisfying conclusion — who is actually right, or a nuanced "it depends
    on X" resolution. This should feel like a payoff, not a shrug.
 7. SUBSCRIBE SECTION (1-2 lines): see below.
@@ -832,9 +863,11 @@ def make_short_line_clip(subject: str, text: str, index: int, is_hook: bool = Fa
     zoom_rate = "0.0035" if is_hook else "0.0009"
     zoom_max = "1.18" if is_hook else "1.10"
 
-    # Alt yazi: kelime obekleri halinde, sirayla belirip kaybolan "flash caption" tarzi
+    # Alt yazi: kelime obekleri halinde, sirayla belirip kaybolan "flash caption" tarzi.
+    # Kanca (ilk) cumlede daha kucuk obekler kullanilir - ilk 3 saniyede daha sik gorsel
+    # degisim ("pattern interrupt") izleyicinin kaydirmasini engellemeye yardimci olur.
     words = text.split()
-    chunk_size = 3
+    chunk_size = 2 if is_hook else 3
     chunks = [" ".join(words[i:i + chunk_size]) for i in range(0, len(words), chunk_size)]
     if not chunks:
         chunks = [""]
@@ -1051,7 +1084,7 @@ def main():
         try:
             image_path = generate_image(scene.get("image_prompt", ""), i, reference_image=ref)
             audio_path = generate_audio(narration, i)
-            clip_path = make_scene_clip(image_path, audio_path, i, subtitle_text=narration)
+            clip_path = make_scene_clip(image_path, audio_path, i, subtitle_text=narration, flash_caption=(i == 1))
             clip_paths.append(clip_path)
         except Exception as e:
             print(f"[{i}] SAHNE ATLANDI (tekrar denemelere rağmen başarısız oldu): {e}")
