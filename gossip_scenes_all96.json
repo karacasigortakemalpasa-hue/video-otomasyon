@@ -1,0 +1,482 @@
+[
+  {
+    "scene_number": 1,
+    "character": "MODERN",
+    "image_prompt": "The Modern Blogger typing furiously at a laptop, a mischievous grin, gossip headlines glowing gold and swirling around them, no text"
+  },
+  {
+    "scene_number": 2,
+    "character": null,
+    "image_prompt": "A hand-inked gavel striking down beside a glowing brass \"SUED\" stamp, dramatic impact, no text"
+  },
+  {
+    "scene_number": 3,
+    "character": "MODERN",
+    "image_prompt": "The Modern Blogger flinching as a fist swings toward them from off-frame, dramatic and restrained, no text"
+  },
+  {
+    "scene_number": 4,
+    "character": null,
+    "image_prompt": "A crowd of tiny glowing violet silhouettes hurling angry messages upward toward a single figure, a storm of hostility, no text"
+  },
+  {
+    "scene_number": 5,
+    "character": "MODERN",
+    "image_prompt": "The Modern Blogger shrugging with a knowing smirk amid the chaos, unbothered, thriving in it, no text"
+  },
+  {
+    "scene_number": 6,
+    "character": null,
+    "image_prompt": "A hand-inked spinning newspaper front page, headlines blurring past too fast to read, no text"
+  },
+  {
+    "scene_number": 7,
+    "character": null,
+    "image_prompt": "A slow push-in on an old sepia-toned photograph transforming into a hand-inked illustration of a 1930s newspaperman, no text"
+  },
+  {
+    "scene_number": 8,
+    "character": "MODERN",
+    "image_prompt": "The Modern Blogger sitting confidently at a desk, laptop glowing, surrounded by floating gossip headline fragments, no text"
+  },
+  {
+    "scene_number": 9,
+    "character": null,
+    "image_prompt": "A hand-inked courtroom gavel and legal document, \"SUED\" stamped across it in bold brass ink, no text"
+  },
+  {
+    "scene_number": 10,
+    "character": "MODERN",
+    "image_prompt": "The Modern Blogger wincing as a fist connects, dramatic but tasteful, no graphic violence, no text"
+  },
+  {
+    "scene_number": 11,
+    "character": null,
+    "image_prompt": "A hand-inked diagram of a famous singer figure pointing accusingly, a swirl of angry tweets rising around them, no text"
+  },
+  {
+    "scene_number": 12,
+    "character": null,
+    "image_prompt": "A crowd of tiny glowing violet silhouettes sending threatening messages toward a distant figure, restrained and symbolic, no text"
+  },
+  {
+    "scene_number": 13,
+    "character": "MODERN",
+    "image_prompt": "The Modern Blogger shrugging with an unbothered grin amid a storm of hostility, no text"
+  },
+  {
+    "scene_number": 14,
+    "character": null,
+    "image_prompt": "A hand-inked scale weighing \"controversy\" heavily against a feather-light \"career damage,\" tipped completely toward controversy, no text"
+  },
+  {
+    "scene_number": 15,
+    "character": null,
+    "image_prompt": "A newspaper headline fragment reading only fragments of harsh words, scattered and overlapping, no text"
+  },
+  {
+    "scene_number": 16,
+    "character": "MODERN",
+    "image_prompt": "The Modern Blogger drawing a crude scribble mustache on a celebrity photo, laughing, no text"
+  },
+  {
+    "scene_number": 17,
+    "character": null,
+    "image_prompt": "A hand-inked diagram of a hand striking someone off-frame, restrained symbolic violence, no text"
+  },
+  {
+    "scene_number": 18,
+    "character": null,
+    "image_prompt": "A courtroom sketch style image, a plaintiff and defendant facing each other, no text"
+  },
+  {
+    "scene_number": 19,
+    "character": "MODERN",
+    "image_prompt": "The Modern Blogger looking at a phone glowing with threatening messages, a flicker of unease beneath their usual grin, no text"
+  },
+  {
+    "scene_number": 20,
+    "character": null,
+    "image_prompt": "A hand-inked diagram of a pop star figure with fans surrounding her like a protective wall, glaring outward, no text"
+  },
+  {
+    "scene_number": 21,
+    "character": null,
+    "image_prompt": "A hand-inked crowd of angry fan silhouettes throwing insults like small daggers toward a distant figure, no text"
+  },
+  {
+    "scene_number": 22,
+    "character": null,
+    "image_prompt": "A hand-inked diagram of leaked private photos scattering like torn paper, no text"
+  },
+  {
+    "scene_number": 23,
+    "character": null,
+    "image_prompt": "A hand-inked quote bubble with harsh critical words, faded and abstract, attributed to an anonymous critic figure, no text"
+  },
+  {
+    "scene_number": 24,
+    "character": null,
+    "image_prompt": "A hand-inked diagram of two paths — \"career ends\" and \"career grows\" — both pointing from the same storm of controversy, no text"
+  },
+  {
+    "scene_number": 25,
+    "character": null,
+    "image_prompt": "A hand-inked engine turning, fueled by small glowing fragments of outrage and anger, no text"
+  },
+  {
+    "scene_number": 26,
+    "character": "MODERN",
+    "image_prompt": "The Modern Blogger standing triumphant atop a pile of angry headlines, thriving rather than buried by them, no text"
+  },
+  {
+    "scene_number": 27,
+    "character": null,
+    "image_prompt": "A hand-inked diagram of a celebrity screaming online, and that same scream transforming into a glowing brass coin, no text"
+  },
+  {
+    "scene_number": 28,
+    "character": null,
+    "image_prompt": "A hand-inked calendar page turning back rapidly, decades spinning away, no text"
+  },
+  {
+    "scene_number": 29,
+    "character": null,
+    "image_prompt": "An old sepia photograph fading at the edges, transforming into a hand-inked illustration, no text"
+  },
+  {
+    "scene_number": 30,
+    "character": null,
+    "image_prompt": "A vintage 1930s American city street, newspaper stands on every corner, no text"
+  },
+  {
+    "scene_number": 31,
+    "character": "WINCHELL",
+    "image_prompt": "A young Winchell as a teenager performing on a vaudeville stage, energetic but slightly out of place, no text"
+  },
+  {
+    "scene_number": 32,
+    "character": "WINCHELL",
+    "image_prompt": "Winchell speaking rapidly into a vintage radio microphone, sound waves rendered as glowing gold ripples spreading outward across a map of America, no text"
+  },
+  {
+    "scene_number": 33,
+    "character": null,
+    "image_prompt": "A hand-inked typewriter clacking rapidly, small gossip bulletins spilling out and being pinned to a backstage wall, no text"
+  },
+  {
+    "scene_number": 34,
+    "character": "WINCHELL",
+    "image_prompt": "Winchell handing a folded note to a newspaper editor, a hopeful expression, no text"
+  },
+  {
+    "scene_number": 35,
+    "character": null,
+    "image_prompt": "A hand-inked newspaper masthead reading only a glowing column header, aged and grand, no text"
+  },
+  {
+    "scene_number": 36,
+    "character": "WINCHELL",
+    "image_prompt": "Winchell seated confidently at a typewriter, a stack of newspapers with his column visible growing beside him, no text"
+  },
+  {
+    "scene_number": 37,
+    "character": null,
+    "image_prompt": "A hand-inked map of America with small glowing brass dots lighting up city by city, syndication spreading, no text"
+  },
+  {
+    "scene_number": 38,
+    "character": "WINCHELL",
+    "image_prompt": "Winchell speaking into a large vintage radio microphone, commanding and theatrical, no text"
+  },
+  {
+    "scene_number": 39,
+    "character": null,
+    "image_prompt": "A hand-inked diagram of countless tiny radio-listener silhouettes across a map, all tuned to the same broadcast, no text"
+  },
+  {
+    "scene_number": 40,
+    "character": null,
+    "image_prompt": "A hand-inked statistic-style diagram showing an enormous crowd size, dwarfing a single microphone at the center, no text"
+  },
+  {
+    "scene_number": 41,
+    "character": "WINCHELL",
+    "image_prompt": "Winchell reviewing a small black notebook, a cold calculating expression, no text"
+  },
+  {
+    "scene_number": 42,
+    "character": null,
+    "image_prompt": "A hand-inked list titled ominously, names being added one by one in brass ink, no text"
+  },
+  {
+    "scene_number": 43,
+    "character": null,
+    "image_prompt": "A hand-inked diagram of publicists and celebrities bowing nervously toward a distant powerful figure, no text"
+  },
+  {
+    "scene_number": 44,
+    "character": "WINCHELL",
+    "image_prompt": "Winchell standing tall and commanding before a crowd of nervous, deferential figures, no text"
+  },
+  {
+    "scene_number": 45,
+    "character": null,
+    "image_prompt": "A hand-inked newspaper page with a bold anti-fascist headline, Winchell's silhouette beside it, no text"
+  },
+  {
+    "scene_number": 46,
+    "character": "WINCHELL",
+    "image_prompt": "Winchell writing a name onto a small notebook page labeled \"DROP DEAD LIST,\" a cold satisfied expression, no text"
+  },
+  {
+    "scene_number": 47,
+    "character": "WINCHELL",
+    "image_prompt": "Winchell shaking hands firmly with a distinguished political figure, a formal handshake, no text"
+  },
+  {
+    "scene_number": 48,
+    "character": null,
+    "image_prompt": "A hand-inked diagram of a radio dial glowing warmly, \"New Deal\" era optimism radiating outward, no text"
+  },
+  {
+    "scene_number": 49,
+    "character": null,
+    "image_prompt": "A hand-inked timeline showing the 1930s and 40s glowing bright gold, no text"
+  },
+  {
+    "scene_number": 50,
+    "character": "WINCHELL",
+    "image_prompt": "Winchell standing at the height of his power, confident and imposing, a golden aura around him, no text"
+  },
+  {
+    "scene_number": 51,
+    "character": null,
+    "image_prompt": "A hand-inked diagram of a peak mountain labeled abstractly, Winchell's silhouette standing at its summit, no text"
+  },
+  {
+    "scene_number": 52,
+    "character": null,
+    "image_prompt": "A hand-inked calendar flipping forward past the mid-1940s, the gold tone beginning to dim, no text"
+  },
+  {
+    "scene_number": 53,
+    "character": "WINCHELL",
+    "image_prompt": "Winchell's expression hardening, a new obsessive intensity in his eyes, no text"
+  },
+  {
+    "scene_number": 54,
+    "character": null,
+    "image_prompt": "A hand-inked diagram of a shadowy lawyer figure whispering into Winchell's ear, no text"
+  },
+  {
+    "scene_number": 55,
+    "character": null,
+    "image_prompt": "A hand-inked political rally scene rendered ominously, flags and shouting figures, no text"
+  },
+  {
+    "scene_number": 56,
+    "character": "WINCHELL",
+    "image_prompt": "Winchell standing beside a stern political figure, aligned and complicit, no text"
+  },
+  {
+    "scene_number": 57,
+    "character": null,
+    "image_prompt": "A hand-inked diagram of Winchell's once-golden aura curdling into a sickly violet, no text"
+  },
+  {
+    "scene_number": 58,
+    "character": "WINCHELL",
+    "image_prompt": "Winchell's confident smirk slowly fading into a harder, more paranoid expression as shadows creep in around him, no text"
+  },
+  {
+    "scene_number": 59,
+    "character": null,
+    "image_prompt": "A hand-inked diagram of two performer figures turning their backs on Winchell, feuds forming, no text"
+  },
+  {
+    "scene_number": 60,
+    "character": "WINCHELL",
+    "image_prompt": "Winchell shouting into a microphone that is visibly cracking, no text"
+  },
+  {
+    "scene_number": 61,
+    "character": null,
+    "image_prompt": "A hand-inked audience of thousands slowly turning away, backs rendered in fading violet, no text"
+  },
+  {
+    "scene_number": 62,
+    "character": null,
+    "image_prompt": "A hand-inked newspaper being dropped from a delivery list, one paper after another, no text"
+  },
+  {
+    "scene_number": 63,
+    "character": "WINCHELL",
+    "image_prompt": "Winchell sitting alone at his typewriter, the once-crowded room now empty around him, no text"
+  },
+  {
+    "scene_number": 64,
+    "character": null,
+    "image_prompt": "A hand-inked diagram of a declining statistic line, audience numbers falling sharply, no text"
+  },
+  {
+    "scene_number": 65,
+    "character": null,
+    "image_prompt": "A hand-inked film reel with a shadowy ruthless character silhouette, based unmistakably on a real person, no text"
+  },
+  {
+    "scene_number": 66,
+    "character": "WINCHELL",
+    "image_prompt": "An older Winchell watching a movie screen showing a character clearly modeled on himself, a complicated expression, no text"
+  },
+  {
+    "scene_number": 67,
+    "character": null,
+    "image_prompt": "A hand-inked empty street at dusk, a single small figure walking alone, no text"
+  },
+  {
+    "scene_number": 68,
+    "character": "WINCHELL",
+    "image_prompt": "Winchell in his final years, seated alone in a quiet room, the golden light long gone, no text"
+  },
+  {
+    "scene_number": 69,
+    "character": null,
+    "image_prompt": "A hand-inked gravestone rendered simply and respectfully, faint and fading, no text"
+  },
+  {
+    "scene_number": 70,
+    "character": null,
+    "image_prompt": "A hand-inked diagram of a name being slowly erased from public memory, letter by letter, no text"
+  },
+  {
+    "scene_number": 71,
+    "character": null,
+    "image_prompt": "A hand-inked diagram of a torch being passed from an old hand to a new, unseen one, no text"
+  },
+  {
+    "scene_number": 72,
+    "character": "WINCHELL",
+    "image_prompt": "Winchell's radio microphone slowly going dark and silent, the glowing gold ripples fading to nothing, no text"
+  },
+  {
+    "scene_number": 73,
+    "character": null,
+    "image_prompt": "A hand-inked diagram of a single seed labeled \"hunger for gossip\" growing into many different plants across a timeline, no text"
+  },
+  {
+    "scene_number": 74,
+    "character": null,
+    "image_prompt": "A hand-inked diagram of a human eye watching intently, ancient and modern versions overlapping, no text"
+  },
+  {
+    "scene_number": 75,
+    "character": null,
+    "image_prompt": "A hand-inked diagram of a crowd cheering as a powerful figure stumbles and falls, restrained and symbolic, no text"
+  },
+  {
+    "scene_number": 76,
+    "character": null,
+    "image_prompt": "A hand-inked brain diagram with a small glowing reward center lighting up beside an image of someone else's misfortune, no text"
+  },
+  {
+    "scene_number": 77,
+    "character": null,
+    "image_prompt": "A hand-inked diagram of a locked door slightly ajar, a curious eye peering through the gap, no text"
+  },
+  {
+    "scene_number": 78,
+    "character": null,
+    "image_prompt": "A hand-inked diagram of a whispered secret passing from one figure to a growing chain of others, no text"
+  },
+  {
+    "scene_number": 79,
+    "character": null,
+    "image_prompt": "A hand-inked diagram of two figures — one modern, one vintage — standing back to back, mirroring each other, no text"
+  },
+  {
+    "scene_number": 80,
+    "character": "MODERN",
+    "image_prompt": "The Modern Blogger and a faint ghostly outline of Winchell overlapping in the same pose, a visual echo across time, no text"
+  },
+  {
+    "scene_number": 81,
+    "character": null,
+    "image_prompt": "A hand-inked diagram of the same hunger, rendered as a flame, passing from one torch to the next indefinitely, no text"
+  },
+  {
+    "scene_number": 82,
+    "character": null,
+    "image_prompt": "A hand-inked crowd cheering for a new glowing figure rising up, unaware of the pattern repeating, no text"
+  },
+  {
+    "scene_number": 83,
+    "character": null,
+    "image_prompt": "A hand-inked diagram of history repeating in a circular loop, faces changing but the shape staying the same, no text"
+  },
+  {
+    "scene_number": 84,
+    "character": "WINCHELL",
+    "image_prompt": "An elderly Winchell walking alone down an empty street, small and diminished, no crowd around him anymore, no text"
+  },
+  {
+    "scene_number": 85,
+    "character": null,
+    "image_prompt": "A hand-inked diagram of a single flame being handed forward into an undefined future, no text"
+  },
+  {
+    "scene_number": 86,
+    "character": null,
+    "image_prompt": "A hand-inked mirror reflecting the viewer, an open unresolved question, no text"
+  },
+  {
+    "scene_number": 87,
+    "character": null,
+    "image_prompt": "A hand-inked diagram of a scale, \"who falls next\" written softly beneath it, unanswered, no text"
+  },
+  {
+    "scene_number": 88,
+    "character": null,
+    "image_prompt": "A quiet hand-inked image of an old typewriter and a modern laptop sitting side by side, the same essential machine, no text"
+  },
+  {
+    "scene_number": 89,
+    "character": null,
+    "image_prompt": "A hand-inked diagram of the same story being told in a new format, over and over, no text"
+  },
+  {
+    "scene_number": 90,
+    "character": null,
+    "image_prompt": "A hand-inked open book with blank final pages, a story without an ending, no text"
+  },
+  {
+    "scene_number": 91,
+    "character": null,
+    "image_prompt": "A hand-inked diagram of a single eye reflected infinitely in a hall of mirrors, no text"
+  },
+  {
+    "scene_number": 92,
+    "character": null,
+    "image_prompt": "A hand-inked question mark glowing gently in brass ink on empty textured paper, no text"
+  },
+  {
+    "scene_number": 93,
+    "character": null,
+    "image_prompt": "A hand-inked diagram of the viewer's own reflection holding a small glowing phone, implicated gently, no text"
+  },
+  {
+    "scene_number": 94,
+    "character": null,
+    "image_prompt": "A quiet closing image of a fading newspaper page blending into a modern glowing phone screen, no text"
+  },
+  {
+    "scene_number": 95,
+    "character": null,
+    "image_prompt": "A hand-inked open hand, neither condemning nor endorsing, simply presenting the pattern, no text"
+  },
+  {
+    "scene_number": 96,
+    "character": null,
+    "image_prompt": "A quiet final image — a small hand-inked subscribe-bell rendered in plum and brass tones on aged textured paper, no text"
+  }
+]
