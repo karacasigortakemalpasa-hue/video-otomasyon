@@ -147,7 +147,7 @@ def _try_gemini_tts(text: str, tone_prompt: str, out_path: str) -> bool:
         url = "https://texttospeech.googleapis.com/v1/text:synthesize"
         payload = {
             "input": {"text": text, "prompt": tone_prompt},
-            "voice": {"languageCode": "en-GB", "name": "gemini-2.5-flash-tts"},
+            "voice": {"languageCode": "en-US", "name": "Charon"},
             "audioConfig": {"audioEncoding": "MP3"},
         }
         data = json.dumps(payload).encode("utf-8")
