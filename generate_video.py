@@ -37,16 +37,28 @@ USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 
 FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 
-# Kanalin sabit gorsel kimligi: Gossip Machine'de test ettigimiz risograph iki-renk
-# baski tarzi. Karakter/maskot yok - tek, tutarli bir illustrasyon dili var.
-STYLE_GUIDE = (
-    "Two-color risograph print illustration, deep plum violet ink and antique brass "
-    "gold ink ONLY — no other colors. Coarse halftone dot grain. Deliberate ink "
-    "misregistration. Heavy paper texture. Imperfect hand-inked outlines with breaks "
-    "and bleeds. Sparse, editorial composition. Flat 2D print aesthetic, no 3D, no "
-    "photorealism, no digital polish. Vintage investigative-journalism poster "
-    "aesthetic. No text, no letters, no numbers anywhere in the image."
-)
+# Kanalin sabit gorsel kimligi: risograph iki-renk baski tarzi. Karakter/maskot yok -
+# tutarli bir illustrasyon DILI var, ama HER BOLUMDE birebir ayni renk cifti kullanilmiyor -
+# YouTube'un "sablon klonu" olarak isaretleyebilecegi mekanik tekrari azaltmak icin,
+# konuya gore 3 farkli (ama ayni aileden) iki-renk paletinden biri seciliyor.
+PALETTES = [
+    "deep plum violet ink and antique brass gold ink ONLY",
+    "deep prussian blue ink and burnt rust orange ink ONLY",
+    "dark forest green ink and faded crimson red ink ONLY",
+]
+
+
+def style_guide_for_topic(topic: str) -> str:
+    """Konuya gore (tutarli, ayni konu hep ayni paleti alsin diye hash tabanli) bir palet secer."""
+    palette = PALETTES[hash(topic) % len(PALETTES)]
+    return (
+        f"Two-color risograph print illustration, {palette}. Coarse halftone dot grain. "
+        "Deliberate ink misregistration. Heavy paper texture. Imperfect hand-inked outlines "
+        "with breaks and bleeds. Sparse, editorial composition. Flat 2D print aesthetic, no "
+        "3D, no photorealism, no digital polish. Vintage investigative-journalism poster "
+        "aesthetic. No text, no letters, no numbers anywhere in the image."
+    )
+
 
 NARRATOR_VOICE = "en-GB-Neural2-D"
 
@@ -117,8 +129,8 @@ def _gemini_generate_image(prompt: str, out_path: str, aspect_ratio: str = "16:9
         f.write(base64.b64decode(image_b64))
 
 
-def generate_image(prompt: str, out_path: str, aspect_ratio: str = "16:9"):
-    full_prompt = f"{STYLE_GUIDE} {prompt}"
+def generate_image(prompt: str, out_path: str, topic: str, aspect_ratio: str = "16:9"):
+    full_prompt = f"{style_guide_for_topic(topic)} {prompt}"
     _gemini_generate_image(full_prompt, out_path, aspect_ratio=aspect_ratio)
     time.sleep(8)  # dakikalik hiz limitine takilmamak icin
 
@@ -184,9 +196,11 @@ def wrap_text(text: str, max_chars: int = 42) -> str:
 
 
 def make_scene_clip(image_path: str, audio_path: str, index: int, subtitle_text: str = "",
-                     flash_caption: bool = False, vertical: bool = False, prefix: str = "clip") -> str:
+                     flash_caption: bool = False, vertical: bool = False, prefix: str = "clip",
+                     zoom_rate: float = 0.0006) -> str:
     """Sabit gorsele Ken Burns efekti + altyazi uygulayip sesle birlestirir.
-    vertical=True ise Short icin 1080x1920 dikey kadraj kullanir."""
+    vertical=True ise Short icin 1080x1920 dikey kadraj kullanir.
+    zoom_rate, bolumden bolume hafifce degisen yaklasma hizi (mekanik tekrari azaltmak icin)."""
     duration = get_audio_duration(audio_path)
     fps = 30
     total_frames = int(duration * fps)
@@ -202,7 +216,7 @@ def make_scene_clip(image_path: str, audio_path: str, index: int, subtitle_text:
     vf_parts = [
         f"scale={scale_w}:{scale_h}:force_original_aspect_ratio=increase",
         f"crop={scale_w}:{scale_h}",
-        f"zoompan=z='min(zoom+0.0006,1.25)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={total_frames}:s={canvas}:fps={fps}",
+        f"zoompan=z='min(zoom+{zoom_rate},1.25)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={total_frames}:s={canvas}:fps={fps}",
     ]
 
     if subtitle_text and flash_caption:
@@ -251,10 +265,10 @@ def concat_clips(clip_paths: list, final_name: str) -> str:
     return final_path
 
 
-def generate_thumbnail(scene_prompt: str, headline_text: str) -> str:
+def generate_thumbnail(scene_prompt: str, headline_text: str, topic: str) -> str:
     """Tek, carpici bir risograph sahnesi + ffmpeg ile garantili buyuk baslik yazisi."""
     scene_img = os.path.join(OUTPUT_DIR, "thumb_scene.jpg")
-    generate_image(scene_prompt, scene_img, aspect_ratio="16:9")
+    generate_image(scene_prompt, scene_img, topic, aspect_ratio="16:9")
 
     final_thumb = os.path.join(OUTPUT_DIR, "thumbnail.jpg")
     safe_headline = headline_text.replace("'", "\u2019").replace(":", "\\:").replace(",", "\\,")
@@ -328,13 +342,26 @@ Write STRICT JSON (no markdown fences, no commentary, just the JSON object) cont
 package: one long-form video script AND one Short script, sharing the exact same title, both telling the
 same core story (the Short is a tightly compressed version, not a teaser).
 
-CRITICAL OPENING RULE (applies to both long_scenes[0] and short_scenes[0]):
-The very first line must be a short, abstract, thought-provoking QUESTION directly tied to the deeper theme
-of the story — NOT a greeting, NOT "today we're talking about X". It should make the viewer want to hear the
-answer. Example style: "Does evidence matter more than what we want to believe?" or "How many people does it
-take to turn a lie into a fact?" The concrete story/name/event follows a few lines later, not immediately.
+OPENING VARIETY RULE (applies to long_scenes[0] and short_scenes[0]):
+Do NOT always use the exact same opening formula. Pick ONE of these three opening styles at random for this
+episode, based on whichever fits the story best:
+(a) An abstract, thought-provoking QUESTION tied to the deeper theme (e.g. "Does evidence matter more than
+    what we want to believe?").
+(b) A bold, flat, confident CLAIM stated as fact, that the episode will complicate (e.g. "For forty years,
+    the world's smartest scientists were completely wrong about a skull.").
+(c) A direct address daring the viewer's own assumption (e.g. "You've probably never questioned this — but
+    you should.").
+In all three cases: NEVER start with a greeting or "today we're talking about X". The concrete story/name/
+event follows a few lines later, not immediately.
 
-LONG-FORM SCRIPT (long_scenes): {{'~38 to 42 scenes'}}, structured as: abstract hook question (1) -> concrete
+EDITORIAL VOICE REQUIREMENT: Somewhere in the long-form script (not the Short), include at least one moment
+of genuine first-person-feeling editorial interpretation or dry observation from the narrator — a specific,
+episode-tailored aside that reflects a point of view, not just a recitation of facts (e.g. a wry comment on
+the irony of the story, a pointed observation about what it says about the people involved, a moment of
+"and here's the part most retellings leave out"). This must be tailored to THIS story's specific details, not
+a generic template phrase reusable across episodes.
+
+LONG-FORM SCRIPT (long_scenes): {{'~38 to 42 scenes'}}, structured as: hook (1, per Opening Variety Rule) -> concrete
 premise/name/event (2-3) -> how it happened / rose (several) -> the twist/reveal (several) -> a natural
 mid-video comment-bait line about two-thirds through (1, e.g. "Comment below what you think happened next")
 -> the deeper psychological mechanism explained with real specificity (several, avoid vague clichés, include
@@ -342,8 +369,8 @@ concrete reasoning) -> resolution (1-2) -> reflective closing question + natural
 scene: concrete narration sentence(s) + a matching risograph-style image_prompt (no text/letters in the
 image itself). Target total spoken duration around 5 minutes.
 
-SHORT SCRIPT (short_scenes): 8 to 12 scenes, same story compressed to its sharpest essence, same opening-
-question rule, same twist, ending with a short punchy reflective line + subscribe mention. Target total
+SHORT SCRIPT (short_scenes): 8 to 12 scenes, same story compressed to its sharpest essence, same Opening
+Variety Rule, same twist, ending with a short punchy reflective line + subscribe mention. Target total
 spoken duration under 55 seconds — write tightly, no filler.
 
 Both scripts must be FACTUALLY GROUNDED — use real documented history. If uncertain of an exact number/date,
@@ -418,7 +445,8 @@ Output EXACTLY this schema:
 # URETIM AKISI
 # ============================================================
 
-def build_long_video(scenes: list, meta: dict, thumb_cfg: dict) -> tuple:
+def build_long_video(scenes: list, meta: dict, thumb_cfg: dict, topic: str) -> tuple:
+    zoom_rate = 0.0004 + (hash(topic) % 5) * 0.0001  # 0.0004-0.0008 arasi, konuya gore sabit ama degisken
     clip_paths = []
     for i, scene in enumerate(scenes, start=1):
         narration = scene.get("narration", "").strip()
@@ -427,10 +455,11 @@ def build_long_video(scenes: list, meta: dict, thumb_cfg: dict) -> tuple:
             continue
         img_path = os.path.join(IMG_DIR, f"scene_{i:03d}.jpg")
         try:
-            generate_image(scene.get("image_prompt", ""), img_path, aspect_ratio="16:9")
+            generate_image(scene.get("image_prompt", ""), img_path, topic, aspect_ratio="16:9")
             audio_path = generate_audio(narration, i, prefix="video")
             clip_path, _ = make_scene_clip(img_path, audio_path, i, subtitle_text=narration,
-                                            flash_caption=(i == 1), vertical=False, prefix="clip")
+                                            flash_caption=(i == 1), vertical=False, prefix="clip",
+                                            zoom_rate=zoom_rate)
             clip_paths.append(clip_path)
         except Exception as e:
             print(f"[video {i}] SAHNE ATLANDI: {e}")
@@ -442,11 +471,12 @@ def build_long_video(scenes: list, meta: dict, thumb_cfg: dict) -> tuple:
     final_video = concat_clips(clip_paths, "final_video.mp4")
     thumb_path = None
     if thumb_cfg.get("scene_prompt"):
-        thumb_path = generate_thumbnail(thumb_cfg["scene_prompt"], thumb_cfg.get("headline_text", meta.get("title", "")))
+        thumb_path = generate_thumbnail(thumb_cfg["scene_prompt"], thumb_cfg.get("headline_text", meta.get("title", "")), topic)
     return final_video, thumb_path
 
 
-def build_short_video(scenes: list, meta: dict) -> str:
+def build_short_video(scenes: list, meta: dict, topic: str) -> str:
+    zoom_rate = 0.0004 + (hash(topic) % 5) * 0.0001
     clip_paths = []
     for i, scene in enumerate(scenes, start=1):
         narration = scene.get("narration", "").strip()
@@ -454,10 +484,11 @@ def build_short_video(scenes: list, meta: dict) -> str:
             continue
         img_path = os.path.join(IMG_DIR, f"short_{i:03d}.jpg")
         try:
-            generate_image(scene.get("image_prompt", ""), img_path, aspect_ratio="9:16")
+            generate_image(scene.get("image_prompt", ""), img_path, topic, aspect_ratio="9:16")
             audio_path = generate_audio(narration, i, prefix="short")
             clip_path, _ = make_scene_clip(img_path, audio_path, i, subtitle_text=narration,
-                                            flash_caption=(i == 1), vertical=True, prefix="shortclip")
+                                            flash_caption=(i == 1), vertical=True, prefix="shortclip",
+                                            zoom_rate=zoom_rate)
             clip_paths.append(clip_path)
         except Exception as e:
             print(f"[short {i}] SAHNE ATLANDI: {e}")
@@ -472,8 +503,9 @@ def build_short_video(scenes: list, meta: dict) -> str:
 def process_topic(topic_path: str):
     with open(topic_path, "r", encoding="utf-8") as f:
         config = json.load(f)
+    topic = config["topic"]
 
-    package = expand_topic_to_package(config["topic"])
+    package = expand_topic_to_package(topic)
     with open(os.path.join(OUTPUT_DIR, "expanded_package.json"), "w", encoding="utf-8") as f:
         json.dump(package, f, ensure_ascii=False, indent=2)
 
@@ -481,12 +513,12 @@ def process_topic(topic_path: str):
     thumb_cfg = package.get("thumbnail", {})
 
     print(f"\n=== UZUN VIDEO ({len(package.get('long_scenes', []))} sahne) ===")
-    final_video, thumb_path = build_long_video(package.get("long_scenes", []), meta, thumb_cfg)
+    final_video, thumb_path = build_long_video(package.get("long_scenes", []), meta, thumb_cfg, topic)
     print(f"Uzun video hazır: {final_video}")
     upload_to_youtube(final_video, thumb_path, meta)
 
     print(f"\n=== SHORT ({len(package.get('short_scenes', []))} sahne) ===")
-    final_short = build_short_video(package.get("short_scenes", []), meta)
+    final_short = build_short_video(package.get("short_scenes", []), meta, topic)
     print(f"Short hazır: {final_short}")
     upload_to_youtube(final_short, None, meta)
 
