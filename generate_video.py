@@ -143,16 +143,21 @@ def _try_gemini_tts(text: str, tone_prompt: str, out_path: str) -> bool:
         return False
     try:
         token = _get_vertex_access_token()
-        url = f"https://texttospeech.googleapis.com/v1/text:synthesize?key={GOOGLE_TTS_KEY}"
+        # Google'in kendi ornegi SADECE Bearer token kullaniyor - API key ile karistirmiyoruz.
+        url = "https://texttospeech.googleapis.com/v1/text:synthesize"
         payload = {
             "input": {"text": text, "prompt": tone_prompt},
-            "voice": {"languageCode": "en-GB", "name": "gemini-2.5-flash-tts", "modelName": "gemini-2.5-flash-tts"},
+            "voice": {"languageCode": "en-GB", "name": "gemini-2.5-flash-tts"},
             "audioConfig": {"audioEncoding": "MP3"},
         }
         data = json.dumps(payload).encode("utf-8")
         req = urllib.request.Request(
             url, data=data,
-            headers={"Content-Type": "application/json", "Authorization": f"Bearer {token}"},
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {token}",
+                "x-goog-user-project": GCP_PROJECT_ID,
+            },
         )
         with urllib.request.urlopen(req, timeout=60) as resp:
             result = json.loads(resp.read().decode("utf-8"))
@@ -160,6 +165,10 @@ def _try_gemini_tts(text: str, tone_prompt: str, out_path: str) -> bool:
         with open(out_path, "wb") as f:
             f.write(audio_bytes)
         return True
+    except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8", errors="ignore")
+        print(f"  (Gemini-TTS denemesi başarısız, standart sese dönülüyor: HTTP {e.code}: {body})")
+        return False
     except Exception as e:
         print(f"  (Gemini-TTS denemesi başarısız, standart sese dönülüyor: {e})")
         return False
@@ -427,7 +436,11 @@ video_meta.description: 2-4 sentence hook, then a short factual note on sourcing
 3-5 relevant hashtags.
 video_meta.tags: 6-10 relevant keyword tags.
 thumbnail.scene_prompt: ONE striking risograph-style illustrated moment from the story (no text in image).
-thumbnail.headline_text: a short, bold headline for the thumbnail (under 40 characters).
+thumbnail.headline_text: a short, bold headline for the thumbnail (under 40 characters). Unlike the video
+title (which must stay search-friendly and name the concrete topic), the thumbnail headline can take more
+risk — consider making it feel like it's about the VIEWER directly rather than the topic (e.g. "YOU'VE
+BEEN FOOLED BY THIS" or "YOU'D HAVE BELIEVED IT TOO" instead of naming the story), when that framing fits
+naturally. Vary this across episodes — don't use the same framing every time.
 
 CRITICAL: Output must be STRICTLY VALID JSON. Escape internal double quotes as \\". No trailing commas.
 
