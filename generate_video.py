@@ -135,11 +135,50 @@ def generate_image(prompt: str, out_path: str, topic: str, aspect_ratio: str = "
     time.sleep(8)  # dakikalik hiz limitine takilmamak icin
 
 
+def _try_gemini_tts(text: str, tone_prompt: str, out_path: str) -> bool:
+    """DENEYSEL: Google'in yeni Gemini-TTS modeliyle, dogal dilde ton/duygu talimati vererek
+    seslendirme uretmeyi dener (orn. 'bunu kuru bir alaycilikla soyle'). Herhangi bir sebeple
+    basarisiz olursa False doner - cagiran taraf guvenilir eski TTS'e gecer, hicbir risk yok."""
+    if not tone_prompt:
+        return False
+    try:
+        token = _get_vertex_access_token()
+        url = f"https://texttospeech.googleapis.com/v1/text:synthesize?key={GOOGLE_TTS_KEY}"
+        payload = {
+            "input": {"text": text, "prompt": tone_prompt},
+            "voice": {"languageCode": "en-GB", "name": "gemini-2.5-flash-tts", "modelName": "gemini-2.5-flash-tts"},
+            "audioConfig": {"audioEncoding": "MP3"},
+        }
+        data = json.dumps(payload).encode("utf-8")
+        req = urllib.request.Request(
+            url, data=data,
+            headers={"Content-Type": "application/json", "Authorization": f"Bearer {token}"},
+        )
+        with urllib.request.urlopen(req, timeout=60) as resp:
+            result = json.loads(resp.read().decode("utf-8"))
+        audio_bytes = base64.b64decode(result["audioContent"])
+        with open(out_path, "wb") as f:
+            f.write(audio_bytes)
+        return True
+    except Exception as e:
+        print(f"  (Gemini-TTS denemesi başarısız, standart sese dönülüyor: {e})")
+        return False
+
+
 def generate_audio(text: str, index: int, prefix: str = "scene", speaking_rate: float = 0.97,
-                    pitch: float = 0.0, volume_gain_db: float = 10.0, emphasize_last_words: int = 0) -> str:
-    """Google Cloud TTS ile TEK, sabit anlatici sesiyle seslendirme uretir."""
+                    pitch: float = 0.0, volume_gain_db: float = 10.0, emphasize_last_words: int = 0,
+                    tone_prompt: str = "") -> str:
+    """Google Cloud TTS ile seslendirme uretir. tone_prompt verilirse once deneysel Gemini-TTS
+    ile (dogal dilde duygu/ton yonlendirmesi) denenir; basarisiz olursa otomatik olarak
+    guvenilir standart sese (Neural2) duser."""
     if not GOOGLE_TTS_KEY:
         raise RuntimeError("GOOGLE_TTS_API_KEY tanımlı değil.")
+
+    out_path = os.path.join(AUDIO_DIR, f"{prefix}_{index:03d}.mp3")
+    print(f"[{prefix} {index}] Seslendirme üretiliyor ({len(text)} karakter)...")
+
+    if tone_prompt and _try_gemini_tts(text, tone_prompt, out_path):
+        return out_path
 
     if emphasize_last_words > 0:
         words = text.split()
@@ -164,11 +203,9 @@ def generate_audio(text: str, index: int, prefix: str = "scene", speaking_rate: 
     }
     data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
-    print(f"[{prefix} {index}] Seslendirme üretiliyor ({len(text)} karakter)...")
     with urllib.request.urlopen(req, timeout=60) as resp:
         result = json.loads(resp.read().decode("utf-8"))
     audio_bytes = base64.b64decode(result["audioContent"])
-    out_path = os.path.join(AUDIO_DIR, f"{prefix}_{index:03d}.mp3")
     with open(out_path, "wb") as f:
         f.write(audio_bytes)
     return out_path
@@ -361,6 +398,13 @@ the irony of the story, a pointed observation about what it says about the peopl
 "and here's the part most retellings leave out"). This must be tailored to THIS story's specific details, not
 a generic template phrase reusable across episodes.
 
+TONE DIRECTION PER SCENE: Every scene needs a "tone_prompt" field — a short (5-10 word) natural-language
+delivery direction for a narrator reading that specific line, tailored to what's actually happening in it
+(e.g. "gravely, letting the weight of it land", "with dry, knowing sarcasm", "quick and urgent, almost
+alarmed", "curious, leaning in", "flat and matter-of-fact, almost deadpan"). Vary these across the script to
+match the emotional arc of the story — a hook should feel different from a tragic detail, which should feel
+different from a wry aside. Do not reuse the exact same tone_prompt twice in one script.
+
 LONG-FORM SCRIPT (long_scenes): {{'~38 to 42 scenes'}}, structured as: hook (1, per Opening Variety Rule) -> concrete
 premise/name/event (2-3) -> how it happened / rose (several) -> the twist/reveal (several) -> a natural
 mid-video comment-bait line about two-thirds through (1, e.g. "Comment below what you think happened next")
@@ -391,8 +435,8 @@ Output EXACTLY this schema:
 {{
   "video_meta": {{"title": "...", "description": "...", "tags": ["...", "..."]}},
   "thumbnail": {{"scene_prompt": "...", "headline_text": "..."}},
-  "long_scenes": [{{"image_prompt": "...", "narration": "..."}}],
-  "short_scenes": [{{"image_prompt": "...", "narration": "..."}}]
+  "long_scenes": [{{"image_prompt": "...", "narration": "...", "tone_prompt": "..."}}],
+  "short_scenes": [{{"image_prompt": "...", "narration": "...", "tone_prompt": "..."}}]
 }}
 """
 
@@ -447,6 +491,8 @@ Output EXACTLY this schema:
 
 def build_long_video(scenes: list, meta: dict, thumb_cfg: dict, topic: str) -> tuple:
     zoom_rate = 0.0004 + (hash(topic) % 5) * 0.0001  # 0.0004-0.0008 arasi, konuya gore sabit ama degisken
+    speaking_rate = 0.94 + (hash(topic + "rate") % 7) * 0.01  # 0.94-1.00 arasi
+    pitch = -1.5 + (hash(topic + "pitch") % 7) * 0.5  # -1.5 ile +1.5 arasi
     clip_paths = []
     for i, scene in enumerate(scenes, start=1):
         narration = scene.get("narration", "").strip()
@@ -456,7 +502,8 @@ def build_long_video(scenes: list, meta: dict, thumb_cfg: dict, topic: str) -> t
         img_path = os.path.join(IMG_DIR, f"scene_{i:03d}.jpg")
         try:
             generate_image(scene.get("image_prompt", ""), img_path, topic, aspect_ratio="16:9")
-            audio_path = generate_audio(narration, i, prefix="video")
+            audio_path = generate_audio(narration, i, prefix="video", speaking_rate=speaking_rate, pitch=pitch,
+                                         tone_prompt=scene.get("tone_prompt", ""))
             clip_path, _ = make_scene_clip(img_path, audio_path, i, subtitle_text=narration,
                                             flash_caption=(i == 1), vertical=False, prefix="clip",
                                             zoom_rate=zoom_rate)
@@ -477,6 +524,8 @@ def build_long_video(scenes: list, meta: dict, thumb_cfg: dict, topic: str) -> t
 
 def build_short_video(scenes: list, meta: dict, topic: str) -> str:
     zoom_rate = 0.0004 + (hash(topic) % 5) * 0.0001
+    speaking_rate = 0.94 + (hash(topic + "rate") % 7) * 0.01
+    pitch = -1.5 + (hash(topic + "pitch") % 7) * 0.5
     clip_paths = []
     for i, scene in enumerate(scenes, start=1):
         narration = scene.get("narration", "").strip()
@@ -485,7 +534,8 @@ def build_short_video(scenes: list, meta: dict, topic: str) -> str:
         img_path = os.path.join(IMG_DIR, f"short_{i:03d}.jpg")
         try:
             generate_image(scene.get("image_prompt", ""), img_path, topic, aspect_ratio="9:16")
-            audio_path = generate_audio(narration, i, prefix="short")
+            audio_path = generate_audio(narration, i, prefix="short", speaking_rate=speaking_rate, pitch=pitch,
+                                         tone_prompt=scene.get("tone_prompt", ""))
             clip_path, _ = make_scene_clip(img_path, audio_path, i, subtitle_text=narration,
                                             flash_caption=(i == 1), vertical=True, prefix="shortclip",
                                             zoom_rate=zoom_rate)
