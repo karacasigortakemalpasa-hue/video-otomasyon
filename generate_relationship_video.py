@@ -1,5 +1,5 @@
 """
-"İlişki Psikolojisi" kanali (3. kanal) - tek anlatici, sicak kagit-kolaj tarzinda,
+"İlişki Psikolojisi" kanali (3. kanal) - tek anlatici, 16-bit piksel sanati tarzinda,
 her konu icin HEM uzun video HEM Short ureten, ortak basligi paylasan sistem.
 
 Onceki (kadin-erkek maskotlu) sistemin tam yerine gecer.
@@ -37,28 +37,28 @@ USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 
 FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 
-# Bu kanalin sabit gorsel kimligi: sicak, kesik-kagit kolaj tarzi. Yuz/karakter
-# CIZILMIYOR (tutarlilik sorunlarindan kacinmak icin) - bunun yerine soyut kavramlar
-# (baglanma, guven, ayrilik) sembolik nesnelerle/siluetlerle anlatiliyor.
-# Konuya gore 3 farkli (ama ayni sicak aileden) palet arasinda rotasyon var.
-PALETTES = [
-    "warm terracotta orange and dusty rose ONLY, with deep navy for accent details",
-    "warm ochre yellow and muted coral ONLY, with deep forest green for accent details",
-    "dusty mauve and warm sienna brown ONLY, with deep charcoal for accent details",
+# Bu kanalin sabit gorsel kimligi: 16-bit piksel sanati, nostaljik oyun estetigi.
+# 16-bit piksel sanati, gercek insan figurleriyle - artik sahnelerde GERCEK,
+# okunakli insan figurleri var (izleyici kim kimdir anlayabilsin diye), ama piksel
+# sanati oldugu icin fotogercekci/tutarlilik riski tasimiyor. Konuya gore 3 farkli
+# (ama ayni nostaljik oyun ailesinden) atmosfer/isik onayarindan biri seciliyor.
+MOODS = [
+    "melancholic night scene, warm indoor lighting against a dark blue window",
+    "quiet golden-hour light spilling through a doorway, soft long shadows",
+    "rainy window light, warm lamp glow inside, cool blue tones outside",
 ]
 
 
 def style_guide_for_topic(topic: str) -> str:
-    """Konuya gore (tutarli, ayni konu hep ayni paleti alsin diye hash tabanli) bir palet secer."""
-    palette = PALETTES[hash(topic) % len(PALETTES)]
+    """Konuya gore (tutarli, ayni konu hep ayni atmosferi alsin diye hash tabanli) bir mod secer."""
+    mood = MOODS[hash(topic) % len(MOODS)]
     return (
-        f"Warm cut-paper collage illustration, layered torn-edge paper shapes, {palette}, on a "
-        "cream kraft-paper background. Visible paper grain texture, soft hand-cut irregular "
-        "edges, slight paper shadow between layers suggesting depth. Symbolic/abstract "
-        "compositions using simple overlapping silhouettes and everyday objects (a frayed rope, "
-        "a compass, two overlapping shapes, an open door, a bridge) rather than detailed human "
-        "faces — intimate, tactile, warm, not cartoonish. Flat 2D, no 3D, no photorealism, no "
-        "digital polish. No text, no letters, no numbers anywhere in the image."
+        f"16-bit pixel art illustration, {mood}, nostalgic retro video game aesthetic, visible "
+        "pixel grid, limited retro color palette. Scenes include simple, clearly human pixel-art "
+        "characters with readable expressions and body language — real people the viewer can "
+        "follow, not abstract shapes. Cozy, melancholic, emotionally warm atmosphere reminiscent "
+        "of narrative indie games. No text, no letters, no numbers, no UI elements anywhere in "
+        "the image."
     )
 
 
@@ -85,7 +85,7 @@ def _get_vertex_access_token() -> str:
 
 
 def _gemini_generate_image(prompt: str, out_path: str, aspect_ratio: str = "16:9"):
-    """Vertex AI (Nano Banana 2 Lite) ile karaktersiz, sicak kagit-kolaj tarzinda gorsel uretir."""
+    """Vertex AI (Nano Banana 2 Lite) ile gercek insan figurlu, 16-bit piksel sanati tarzinda gorsel uretir."""
     token = _get_vertex_access_token()
     host = "aiplatform.googleapis.com" if GCP_REGION == "global" else f"{GCP_REGION}-aiplatform.googleapis.com"
     url = (
@@ -314,7 +314,7 @@ def concat_clips(clip_paths: list, final_name: str) -> str:
 
 
 def generate_thumbnail(scene_prompt: str, headline_text: str, topic: str) -> str:
-    """Tek, carpici bir kagit-kolaj sahnesi + ffmpeg ile garantili buyuk baslik yazisi."""
+    """Tek, carpici bir piksel sanati sahnesi + ffmpeg ile garantili buyuk baslik yazisi."""
     scene_img = os.path.join(OUTPUT_DIR, "thumb_scene.jpg")
     generate_image(scene_prompt, scene_img, topic, aspect_ratio="16:9")
 
@@ -379,18 +379,16 @@ def upload_to_youtube(video_path: str, thumb_path: str, meta: dict):
 
 def expand_topic_to_package(topic: str, stage_label: str = "") -> dict:
     stage_context = (
-        f"\nROADMAP POSITION: This episode belongs to the '{stage_label}' stage of the channel's A-to-Z "
-        "relationship journey roadmap (a visual map the audience has seen, going from being single, through "
-        "meeting someone, commitment, deep love or toxicity, breakup, healing, to starting over). Reference "
-        "this position naturally in the standard intro (see LONG-FORM SCRIPT structure below).\n"
+        f"\nCONTEXT: This episode belongs to the '{stage_label}' stage of the channel's A-to-Z relationship "
+        "journey (being single, meeting someone, commitment, deep love or toxicity, breakup, healing, "
+        "starting over). Let this context quietly inform the topic statement, not a separate scene.\n"
         if stage_label else ""
     )
-    system_prompt = f"""You are the head writer for a documentary-style YouTube channel about the real
-psychology of love and relationships — every episode dives into a specific, research-grounded phenomenon
-(attachment, attraction, conflict, betrayal, heartbreak, reconciliation, etc.), reveals a genuine "twist" or
-counterintuitive insight, and connects it to a timeless truth about how people love and hurt each other.
-Tone: warm, calm, confident, dry-witted narrator, like a quality long-form documentary — never cartoonish,
-never a cheap "AI slop" listicle voice.
+    system_prompt = f"""You are the head writer for a YouTube channel about the real psychology of love and
+relationships — every episode dives into a specific, research-grounded phenomenon (attachment, attraction,
+conflict, betrayal, heartbreak, reconciliation, etc.), reveals a genuine "twist" or counterintuitive insight,
+and connects it to a timeless truth about how people love and hurt each other. Tone: warm, casual, like a
+smart friend explaining real psychology over coffee — never academic, never a cheap "AI slop" listicle voice.
 {stage_context}
 TOPIC: {topic}
 
@@ -398,17 +396,20 @@ Write STRICT JSON (no markdown fences, no commentary, just the JSON object) cont
 package: one long-form video script AND one Short script, sharing the exact same title, both telling the
 same core story (the Short is a tightly compressed version, not a teaser).
 
-OPENING VARIETY RULE (applies to short_scenes[0], and to long_scenes AFTER the standard intro block below):
-Do NOT always use the exact same opening formula. Pick ONE of these three opening styles at random for this
-episode, based on whichever fits the story best:
+OPENING VARIETY RULE (applies to short_scenes[0], and to long_scenes right after the standard intro block
+below): Do NOT always use the exact same opening formula. Pick ONE of these three hook styles at random for
+this episode, based on whichever fits the story best:
 (a) An abstract, thought-provoking QUESTION tied to the deeper theme (e.g. "Does evidence matter more than
     what we want to believe?").
 (b) A bold, flat, confident CLAIM stated as fact, that the episode will complicate (e.g. "For forty years,
     the world's smartest scientists were completely wrong about a skull.").
 (c) A direct address daring the viewer's own assumption (e.g. "You've probably never questioned this — but
     you should.").
-NEVER start with a plain greeting like "Hey guys" or "Welcome back". The concrete story/name/event follows a
-few lines later, not immediately.
+
+EVERYDAY LANGUAGE REQUIREMENT: Write like a smart friend explaining real psychology over coffee — casual,
+conversational, plain everyday words and short sentences. NOT academic, NOT a formal documentary voice, NOT
+stiff. Still grounded in real psychology (concrete mechanisms, real research, avoid vague clichés — see the
+specificity rule below), just delivered simply and naturally, the way you'd actually talk to a friend.
 
 EDITORIAL VOICE REQUIREMENT: Somewhere in the long-form script (not the Short), include at least one moment
 of genuine first-person-feeling editorial interpretation or dry observation from the narrator — a specific,
@@ -424,24 +425,21 @@ alarmed", "curious, leaning in", "flat and matter-of-fact, almost deadpan"). Var
 match the emotional arc of the story — a hook should feel different from a tragic detail, which should feel
 different from a wry aside. Do not reuse the exact same tone_prompt twice in one script.
 
-LONG-FORM SCRIPT (long_scenes): {{'~38 to 42 scenes'}} total. It MUST begin with this standard intro block,
-in this exact order, before the Opening Variety hook:
-1. ROADMAP POSITION (1 scene): a short, warm line telling the viewer where this episode sits on the
-   channel's relationship roadmap (use the ROADMAP POSITION context above if provided; otherwise describe
-   the general life stage naturally). E.g. "We're at the 'toxicity and conflict' stop on the map today."
-2. BRIEF CHANNEL INTRO (1 scene): one short, warm line establishing what this channel does — real
-   relationship psychology, not generic advice. Keep it fresh each episode, not a copy-pasted slogan.
-3. EARLY SUBSCRIBE MENTION (1 scene): one brief, natural, non-pushy invitation to subscribe, placed here
-   near the start (not corny, not a hard sell) — e.g. "If you're new here, this is the kind of thing we dig
-   into every episode — subscribe if that's your thing."
-Then continue with: hook (1, per Opening Variety Rule) -> concrete premise/name/phenomenon (2-3) -> how it
-plays out / the research (several) -> the twist/reveal (several) -> a natural mid-video comment-bait line
-about two-thirds through (1, e.g. "Comment below if you've experienced this") -> the deeper psychological
-mechanism explained with real specificity (several, avoid vague clichés, include concrete reasoning) ->
-resolution (1-2) -> reflective closing question + natural closing subscribe line (1-2). Each scene: concrete
-narration sentence(s) + a matching image_prompt describing a symbolic/abstract scene (paper-collage style —
-silhouettes, everyday objects, no literal detailed faces; no text/letters in the image itself). Target total
-spoken duration around 5 minutes.
+LONG-FORM SCRIPT (long_scenes): {{'~38 to 42 scenes'}} total. It MUST begin with this SHORT standard intro
+(only 2 scenes total, do not pad it out), in this exact order:
+1. DIRECT TOPIC STATEMENT (1 scene): plainly and casually say what today's topic actually is, right away —
+   no build-up. E.g. "Today we're talking about why some people can't stop checking their ex's Instagram."
+2. THIS WEEK ON THE CHANNEL (1 scene): one short, casual line — e.g. "This week we're digging into that."
+Then go straight into: the hook (1, per Opening Variety Rule, full narrative pull — real hooks, real
+transitions, no filler) -> concrete premise/phenomenon (2-3) -> how it plays out / the research (several) ->
+the twist/reveal (several) -> A SUBSCRIBE ASK (1 scene, short and natural, placed here after the hook has
+landed — e.g. "If this kind of thing interests you, this is what we do here every week — subscribe.") -> then
+continue: a natural mid-video comment-bait line about two-thirds through (1, e.g. "Comment below if you've
+experienced this") -> the deeper psychological mechanism explained with real specificity (several, avoid
+vague clichés, include concrete reasoning) -> resolution (1-2) -> reflective closing question + natural
+closing line (1-2). Each scene: concrete narration sentence(s) + a matching image_prompt describing a scene
+with clearly readable human characters (16-bit pixel art game style; no text/letters in the image itself).
+Target total spoken duration around 5 minutes — keep the intro tight, spend the real time on the substance.
 
 SHORT SCRIPT (short_scenes): 8 to 12 scenes. Do NOT include the standard intro block above — go straight
 into the Opening Variety Rule hook. Same story compressed to its sharpest essence, same twist, ending with a
@@ -457,7 +455,7 @@ characters.
 video_meta.description: 2-4 sentence hook, then a short factual note on sourcing/accuracy if relevant, then
 3-5 relevant hashtags.
 video_meta.tags: 6-10 relevant keyword tags.
-thumbnail.scene_prompt: ONE striking symbolic/abstract illustrated moment from the story (paper-collage style — silhouettes or everyday objects, no literal detailed faces; no text in image).
+thumbnail.scene_prompt: ONE striking 16-bit pixel art moment from the story, with a clearly readable human character showing strong emotion (no text in image).
 thumbnail.headline_text: a short, bold headline for the thumbnail (under 40 characters). Unlike the video
 title (which must stay search-friendly and name the concrete topic), the thumbnail headline can take more
 risk — consider making it feel like it's about the VIEWER directly rather than the topic (e.g. "YOU'VE
