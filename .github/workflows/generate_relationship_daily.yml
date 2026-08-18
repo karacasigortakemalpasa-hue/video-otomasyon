@@ -1,10 +1,9 @@
-name: Iliski Kanali Uret (Yuklemesiz)
+name: Iliski Kanali Uret (Otomatik Yukler)
 
 on:
   workflow_dispatch:
   schedule:
-    # Gunde 4 kez calisir (UTC 01,07,13,19) - digger kanalin saatlerinden BILEREK farkli,
-    # ayni queue/workflow dosyalarina hic dokunmuyor.
+    # Gunde 4 kez calisir (UTC 01,07,13,19) - diger kanalin saatlerinden farkli
     - cron: '0 1,7,13,19 * * *'
 
 permissions:
@@ -42,22 +41,15 @@ jobs:
             echo "Islenecek dosya: $FILE"
           fi
 
-      - name: Video + Short uret (YouTube'a YUKLEMEZ, sadece dosya)
+      - name: Video + Short uret ve YouTube'a yukle
         if: steps.pick.outputs.found == 'true'
         env:
           GCP_SERVICE_ACCOUNT_JSON: ${{ secrets.GCP_SERVICE_ACCOUNT_JSON }}
           GOOGLE_TTS_API_KEY: ${{ secrets.GOOGLE_TTS_API_KEY }}
+          REL_YT_CLIENT_ID: ${{ secrets.REL_YT_CLIENT_ID }}
+          REL_YT_CLIENT_SECRET: ${{ secrets.REL_YT_CLIENT_SECRET }}
+          REL_YT_REFRESH_TOKEN: ${{ secrets.REL_YT_REFRESH_TOKEN }}
         run: python -u generate_relationship_video.py "${{ steps.pick.outputs.file }}"
-
-      - name: Ciktilari yukle (indirilebilir dosya olarak - SADECE burdan indirilir)
-        if: steps.pick.outputs.found == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: iliski-kanali-ciktilar
-          path: |
-            output/final_video.mp4
-            output/final_short.mp4
-            output/thumbnail.jpg
 
       - name: Islenen konuyu kuyruktan cikar
         if: steps.pick.outputs.found == 'true'
