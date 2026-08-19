@@ -22,7 +22,14 @@ jobs:
           python-version: "3.11"
 
       - name: ffmpeg ve font kur
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg fonts-dejavu-core
+        timeout-minutes: 5
+        run: |
+          sudo rm -f /etc/apt/apt-mirrors.txt
+          echo 'Acquire::Retries "2";' | sudo tee /etc/apt/apt.conf.d/80-retries
+          echo 'Acquire::http::Timeout "10";' | sudo tee -a /etc/apt/apt.conf.d/80-retries
+          echo 'Acquire::https::Timeout "10";' | sudo tee -a /etc/apt/apt.conf.d/80-retries
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-dejavu-core
 
       - name: Python paketlerini kur
         run: pip install -r requirements.txt
