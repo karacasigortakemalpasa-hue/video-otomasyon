@@ -11,6 +11,7 @@ Kullanim:
 import os
 import sys
 import json
+import re
 import base64
 import subprocess
 import time
@@ -596,12 +597,21 @@ def process_topic(topic_path: str):
     topic = config["topic"]
     stage_label = config.get("stage", "")
 
+    # Dosya adindan (orn. "005_konu.json") bolum numarasi dogrudan alinir - kaydirma yok.
+    # 005_konu.json -> baslikta "5- ..." olarak gorunur.
+    filename = os.path.basename(topic_path)
+    match = re.match(r"^(\d+)_", filename)
+    episode_number = int(match.group(1)) if match else None
+
     package = expand_topic_to_package(topic, stage_label=stage_label)
     with open(os.path.join(OUTPUT_DIR, "expanded_package.json"), "w", encoding="utf-8") as f:
         json.dump(package, f, ensure_ascii=False, indent=2)
 
     meta = package.get("video_meta", {})
     thumb_cfg = package.get("thumbnail", {})
+
+    if episode_number:
+        meta["title"] = f"{episode_number}- {meta.get('title', '')}"
 
     print(f"\n=== UZUN VIDEO ({len(package.get('long_scenes', []))} sahne) ===")
     final_video, thumb_path = build_long_video(package.get("long_scenes", []), meta, thumb_cfg, topic)
