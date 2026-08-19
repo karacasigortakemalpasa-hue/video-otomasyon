@@ -19,9 +19,9 @@ import urllib.request
 import urllib.error
 
 GOOGLE_TTS_KEY = os.environ.get("GOOGLE_TTS_API_KEY", "")
-YT_CLIENT_ID = os.environ.get("YT_CLIENT_ID", "")
-YT_CLIENT_SECRET = os.environ.get("YT_CLIENT_SECRET", "")
-YT_REFRESH_TOKEN = os.environ.get("YT_REFRESH_TOKEN", "")
+YT_CLIENT_ID = os.environ.get("REL_YT_CLIENT_ID", "")
+YT_CLIENT_SECRET = os.environ.get("REL_YT_CLIENT_SECRET", "")
+YT_REFRESH_TOKEN = os.environ.get("REL_YT_REFRESH_TOKEN", "")
 GCP_SERVICE_ACCOUNT_JSON = os.environ.get("GCP_SERVICE_ACCOUNT_JSON", "")
 GCP_PROJECT_ID = os.environ.get("GCP_PROJECT_ID", "rosy-embassy-473607-a3")
 GCP_REGION = "global"
@@ -598,14 +598,15 @@ def process_topic(topic_path: str):
 
     print(f"\n=== UZUN VIDEO ({len(package.get('long_scenes', []))} sahne) ===")
     final_video, thumb_path = build_long_video(package.get("long_scenes", []), meta, thumb_cfg, topic)
-    print(f"Uzun video hazır (YÜKLENMEDİ, sadece dosya): {final_video}")
+    print(f"Uzun video hazır: {final_video}")
+    upload_to_youtube(final_video, thumb_path, meta)
 
     print(f"\n=== SHORT ({len(package.get('short_scenes', []))} sahne) ===")
     final_short = build_short_video(package.get("short_scenes", []), meta, topic)
-    print(f"Short hazır (YÜKLENMEDİ, sadece dosya): {final_short}")
+    print(f"Short hazır: {final_short}")
+    upload_to_youtube(final_short, None, meta)
 
-    print("\nİkisi de hazır, YouTube'a hiç yüklenmedi. Başlık:", meta.get("title", ""))
-    print("Dosyaları GitHub Actions artifact'inden elle indireceksin.")
+    print("\nİkisi de aynı başlıkla yüklendi:", meta.get("title", ""))
 
 
 def main():
