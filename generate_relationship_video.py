@@ -455,7 +455,14 @@ characters.
 video_meta.description: 2-4 sentence hook, then a short factual note on sourcing/accuracy if relevant, then
 3-5 relevant hashtags.
 video_meta.tags: 6-10 relevant keyword tags.
-thumbnail.scene_prompt: ONE striking 16-bit pixel art moment from the story, with a clearly readable human character showing strong emotion (no text in image).
+thumbnail.scene_prompt: MUST follow this exact approved composition: "16-bit pixel art illustration, two
+clearly human pixel-art characters standing very close together, strong visible emotional tension — one
+character reaching a hand toward the other, the other turning their face away, bright warm-toned solid color
+background (single flat color, no clutter, no scenery details), bold high-contrast lighting, large
+expressive faces and body language readable even at small size, punchy saturated retro video game color
+palette, simple and uncluttered composition with the two characters as the only focal point." Adapt only the
+specific emotional framing/pose slightly to fit THIS episode's topic if needed, but keep the close-together
+two-character, bright-flat-background, uncluttered structure exactly. No text in the image.
 thumbnail.headline_text: a short, bold headline for the thumbnail (under 40 characters). Unlike the video
 title (which must stay search-friendly and name the concrete topic), the thumbnail headline can take more
 risk — consider making it feel like it's about the VIEWER directly rather than the topic (e.g. "YOU'VE
