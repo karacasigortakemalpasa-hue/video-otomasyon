@@ -24,7 +24,7 @@ jobs:
       - name: ffmpeg ve font kur
         timeout-minutes: 5
         run: |
-          sudo rm -f /etc/apt/apt-mirrors.txt
+          echo "http://archive.ubuntu.com/ubuntu/" | sudo tee /etc/apt/apt-mirrors.txt
           echo 'Acquire::Retries "2";' | sudo tee /etc/apt/apt.conf.d/80-retries
           echo 'Acquire::http::Timeout "10";' | sudo tee -a /etc/apt/apt.conf.d/80-retries
           echo 'Acquire::https::Timeout "10";' | sudo tee -a /etc/apt/apt.conf.d/80-retries
