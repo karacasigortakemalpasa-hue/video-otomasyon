@@ -311,10 +311,22 @@ def concat_clips(clip_paths: list, final_name: str) -> str:
     return final_path
 
 
-def generate_thumbnail(scene_prompt: str, headline_text: str, topic: str) -> str:
-    """Tek, carpici bir risograph sahnesi + ffmpeg ile garantili buyuk baslik yazisi."""
+def generate_thumbnail(key_object: str, secret_object: str, headline_text: str, topic: str) -> str:
+    """Kapak resmini SABIT 'heykel formulu' ile uretir - bu, videonun geri kalanindaki
+    (risograph) tarzdan BILEREK farkli, kanitlanmis yuksek-CTR bir kapak stili.
+    Kanal stilinden (style_guide_for_topic) BAGIMSIZ calisir - dogrudan _gemini_generate_image
+    kullanilir, STYLE_GUIDE eklenmez."""
+    scene_prompt = (
+        f"Surreal clickbait YouTube thumbnail. Pure white background, minimalist composition, "
+        f"massive negative space, clinical and cold atmosphere. A massive, hyper-realistic stone "
+        f"sculpture of {key_object}, weathered texture, high-end museum lighting, sharp focus. "
+        f"A hidden mechanical hatch built into the stone is open, revealing a glowing red "
+        f"{secret_object} inside. High visual tension, mysterious vibe. 8k resolution, "
+        f"photorealistic, cinematic studio lighting, professional product photography style. "
+        f"No text, no letters, no numbers anywhere in the image."
+    )
     scene_img = os.path.join(OUTPUT_DIR, "thumb_scene.jpg")
-    generate_image(scene_prompt, scene_img, topic, aspect_ratio="16:9")
+    _gemini_generate_image(scene_prompt, scene_img, aspect_ratio="16:9")
 
     final_thumb = os.path.join(OUTPUT_DIR, "thumbnail.jpg")
     safe_headline = headline_text.replace("'", "\u2019").replace(":", "\\:").replace(",", "\\,")
@@ -435,7 +447,15 @@ characters.
 video_meta.description: 2-4 sentence hook, then a short factual note on sourcing/accuracy if relevant, then
 3-5 relevant hashtags.
 video_meta.tags: 6-10 relevant keyword tags.
-thumbnail.scene_prompt: ONE striking risograph-style illustrated moment from the story (no text in image).
+thumbnail.key_object: Analyze this specific story and identify ONE single physical object that best
+symbolizes it (e.g. "an old vaudeville radio microphone", "a wedding ring", "a small glass vial", "a
+child's toy robot"). Short phrase, 3-8 words. This object will be rendered as a dramatic stone museum
+sculpture on the thumbnail — pick something concrete and visually strong, not abstract.
+thumbnail.secret_object: A short (2-6 word) description of a small object representing the hidden twist or
+secret of this story (e.g. "a tiny skull", "a burning dollar bill", "a broken heart", "a fake diamond").
+Describe ONLY the bare object itself — do NOT include words like "glowing" or "red" in this field, since
+those are added automatically by the renderer. This will glow red, revealed inside a hidden compartment in
+the sculpture from thumbnail.key_object.
 thumbnail.headline_text: a short, bold headline for the thumbnail (under 40 characters). Unlike the video
 title (which must stay search-friendly and name the concrete topic), the thumbnail headline can take more
 risk — consider making it feel like it's about the VIEWER directly rather than the topic (e.g. "YOU'VE
@@ -447,7 +467,7 @@ CRITICAL: Output must be STRICTLY VALID JSON. Escape internal double quotes as \
 Output EXACTLY this schema:
 {{
   "video_meta": {{"title": "...", "description": "...", "tags": ["...", "..."]}},
-  "thumbnail": {{"scene_prompt": "...", "headline_text": "..."}},
+  "thumbnail": {{"key_object": "...", "secret_object": "...", "headline_text": "..."}},
   "long_scenes": [{{"image_prompt": "...", "narration": "...", "tone_prompt": "..."}}],
   "short_scenes": [{{"image_prompt": "...", "narration": "...", "tone_prompt": "..."}}]
 }}
@@ -530,8 +550,13 @@ def build_long_video(scenes: list, meta: dict, thumb_cfg: dict, topic: str) -> t
 
     final_video = concat_clips(clip_paths, "final_video.mp4")
     thumb_path = None
-    if thumb_cfg.get("scene_prompt"):
-        thumb_path = generate_thumbnail(thumb_cfg["scene_prompt"], thumb_cfg.get("headline_text", meta.get("title", "")), topic)
+    if thumb_cfg.get("key_object"):
+        thumb_path = generate_thumbnail(
+            thumb_cfg["key_object"],
+            thumb_cfg.get("secret_object", "a small glowing object"),
+            thumb_cfg.get("headline_text", meta.get("title", "")),
+            topic,
+        )
     return final_video, thumb_path
 
 

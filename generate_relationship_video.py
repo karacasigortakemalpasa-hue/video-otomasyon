@@ -314,10 +314,22 @@ def concat_clips(clip_paths: list, final_name: str) -> str:
     return final_path
 
 
-def generate_thumbnail(scene_prompt: str, headline_text: str, topic: str) -> str:
-    """Tek, carpici bir piksel sanati sahnesi + ffmpeg ile garantili buyuk baslik yazisi."""
+def generate_thumbnail(key_object: str, secret_object: str, headline_text: str, topic: str) -> str:
+    """Kapak resmini SABIT '8-bit heykel formulu' ile uretir - ayni kanitlanmis kompozisyon
+    (beyaz zemin, gizemli heykel, parlayan sir) ama bu kanalin kimligine uygun piksel sanati
+    olarak. Kanal stilinden (style_guide_for_topic) BAGIMSIZ calisir."""
+    scene_prompt = (
+        f"Surreal clickbait YouTube thumbnail, 16-bit pixel art style, visible pixel grid, "
+        f"blocky retro video game aesthetic. Pure white background, minimalist composition, "
+        f"massive negative space, clinical and cold atmosphere, rendered entirely in pixel art. "
+        f"A massive pixel-art stone statue/sculpture of {key_object}, weathered blocky pixel "
+        f"texture, dramatic pixel-art lighting, sharp pixelated detail. A hidden mechanical hatch "
+        f"built into the pixel-art stone is open, revealing a glowing red pixel-art "
+        f"{secret_object} inside. High visual tension, mysterious retro game vibe. No text, no "
+        f"letters, no numbers anywhere in the image."
+    )
     scene_img = os.path.join(OUTPUT_DIR, "thumb_scene.jpg")
-    generate_image(scene_prompt, scene_img, topic, aspect_ratio="16:9")
+    _gemini_generate_image(scene_prompt, scene_img, aspect_ratio="16:9")
 
     final_thumb = os.path.join(OUTPUT_DIR, "thumbnail.jpg")
     safe_headline = headline_text.replace("'", "\u2019").replace(":", "\\:").replace(",", "\\,")
@@ -456,14 +468,14 @@ characters.
 video_meta.description: 2-4 sentence hook, then a short factual note on sourcing/accuracy if relevant, then
 3-5 relevant hashtags.
 video_meta.tags: 6-10 relevant keyword tags.
-thumbnail.scene_prompt: MUST follow this exact approved composition: "16-bit pixel art illustration, two
-clearly human pixel-art characters standing very close together, strong visible emotional tension — one
-character reaching a hand toward the other, the other turning their face away, bright warm-toned solid color
-background (single flat color, no clutter, no scenery details), bold high-contrast lighting, large
-expressive faces and body language readable even at small size, punchy saturated retro video game color
-palette, simple and uncluttered composition with the two characters as the only focal point." Adapt only the
-specific emotional framing/pose slightly to fit THIS episode's topic if needed, but keep the close-together
-two-character, bright-flat-background, uncluttered structure exactly. No text in the image.
+thumbnail.key_object: Analyze this specific story/topic and identify ONE single physical object that best
+symbolizes it (e.g. "a wedding ring", "a torn love letter", "a broken heart-shaped locket", "two wine
+glasses"). Short phrase, 3-8 words. This object will be rendered as a dramatic pixel-art stone sculpture on
+the thumbnail — pick something concrete and visually strong, not abstract.
+thumbnail.secret_object: A short (2-6 word) description of a small object representing the hidden twist or
+emotional core of this story (e.g. "a hidden diary page", "a second phone", "a faded photograph"). Describe
+ONLY the bare object itself — do NOT include words like "glowing" or "red" in this field, since those are
+added automatically by the renderer.
 thumbnail.headline_text: a short, bold headline for the thumbnail (under 40 characters). Unlike the video
 title (which must stay search-friendly and name the concrete topic), the thumbnail headline can take more
 risk — consider making it feel like it's about the VIEWER directly rather than the topic (e.g. "YOU'VE
@@ -475,7 +487,7 @@ CRITICAL: Output must be STRICTLY VALID JSON. Escape internal double quotes as \
 Output EXACTLY this schema:
 {{
   "video_meta": {{"title": "...", "description": "...", "tags": ["...", "..."]}},
-  "thumbnail": {{"scene_prompt": "...", "headline_text": "..."}},
+  "thumbnail": {{"key_object": "...", "secret_object": "...", "headline_text": "..."}},
   "long_scenes": [{{"image_prompt": "...", "narration": "...", "tone_prompt": "..."}}],
   "short_scenes": [{{"image_prompt": "...", "narration": "...", "tone_prompt": "..."}}]
 }}
@@ -558,8 +570,13 @@ def build_long_video(scenes: list, meta: dict, thumb_cfg: dict, topic: str) -> t
 
     final_video = concat_clips(clip_paths, "final_video.mp4")
     thumb_path = None
-    if thumb_cfg.get("scene_prompt"):
-        thumb_path = generate_thumbnail(thumb_cfg["scene_prompt"], thumb_cfg.get("headline_text", meta.get("title", "")), topic)
+    if thumb_cfg.get("key_object"):
+        thumb_path = generate_thumbnail(
+            thumb_cfg["key_object"],
+            thumb_cfg.get("secret_object", "a small glowing object"),
+            thumb_cfg.get("headline_text", meta.get("title", "")),
+            topic,
+        )
     return final_video, thumb_path
 
 
