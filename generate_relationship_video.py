@@ -464,10 +464,24 @@ use a reasonable, clearly-labeled approximation rather than fabricating false pr
 clichés — every scene should add real, specific information.
 
 video_meta.title: applies to BOTH the long video and the Short (same title), curiosity-driven, under 65
-characters.
-video_meta.description: 2-4 sentence hook, then a short factual note on sourcing/accuracy if relevant, then
-3-5 relevant hashtags.
-video_meta.tags: 6-10 relevant keyword tags.
+characters. It should still clearly signal the real, concrete topic (the actual psychological phenomenon or
+relationship stage), not be pure abstract clickbait — curiosity AND clarity together, not one instead of the
+other.
+video_meta.description: Write 200-300 words, structured for YouTube's discovery algorithm, in this order:
+(1) The very FIRST sentence must clearly and plainly state the real subject of the video in concrete terms
+    (the actual psychological phenomenon, relationship stage, and topic category — e.g. "This video explores
+    [X], a psychological pattern in [attraction/breakup/attachment/etc.]...") so both viewers and YouTube's
+    system immediately know what this is about, even if only the first sentence is visible before "show more".
+(2) Then 2-3 sentences expanding naturally on what the video actually covers and why it matters — use
+    several different natural phrasings of the topic and its themes (semantic variation: e.g. don't only say
+    "relationship" ten times — also use "attachment", "psychology of love", "breakup recovery", "dating"
+    etc. where accurate) so the description reads as genuinely rich, not keyword-stuffed.
+(3) A short factual note on sourcing/accuracy if relevant.
+(4) End with 3-5 relevant hashtags.
+Never repeat the same exact keyword unnaturally — vary phrasing, write like a real, well-informed video
+description a human researcher would write, not an SEO template.
+video_meta.tags: 8-12 relevant keyword tags, mixing broad category tags (e.g. "relationship psychology",
+"dating advice", "attachment styles") with specific niche tags naming the actual subject.
 thumbnail.key_object: Analyze this specific story/topic and identify ONE single physical object that best
 symbolizes it (e.g. "a wedding ring", "a torn love letter", "a broken heart-shaped locket", "two wine
 glasses"). Short phrase, 3-8 words. This object will be rendered as a dramatic pixel-art stone sculpture on
