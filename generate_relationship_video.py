@@ -1,13 +1,13 @@
 """
-"İlişki Psikolojisi" kanali (3. kanal) - tek anlatici, 16-bit piksel sanati tarzinda,
+"Para Psikolojisi" kanali (3. kanal) - tek anlatici, canli gouache poster tarzinda,
 her konu icin HEM uzun video HEM Short ureten, ortak basligi paylasan sistem.
-
+ 
 Onceki (kadin-erkek maskotlu) sistemin tam yerine gecer.
-
+ 
 Kullanim:
     python generate_video.py queue/topics/001_konu.json
 """
-
+ 
 import os
 import sys
 import json
@@ -18,7 +18,7 @@ import time
 import urllib.parse
 import urllib.request
 import urllib.error
-
+ 
 GOOGLE_TTS_KEY = os.environ.get("GOOGLE_TTS_API_KEY", "")
 YT_CLIENT_ID = os.environ.get("REL_YT_CLIENT_ID", "")
 YT_CLIENT_SECRET = os.environ.get("REL_YT_CLIENT_SECRET", "")
@@ -26,20 +26,20 @@ YT_REFRESH_TOKEN = os.environ.get("REL_YT_REFRESH_TOKEN", "")
 GCP_SERVICE_ACCOUNT_JSON = os.environ.get("GCP_SERVICE_ACCOUNT_JSON", "")
 GCP_PROJECT_ID = os.environ.get("GCP_PROJECT_ID", "rosy-embassy-473607-a3")
 GCP_REGION = "global"
-
+ 
 OUTPUT_DIR = "output"
 IMG_DIR = os.path.join(OUTPUT_DIR, "images")
 AUDIO_DIR = os.path.join(OUTPUT_DIR, "audio")
 CLIP_DIR = os.path.join(OUTPUT_DIR, "clips")
 for d in (IMG_DIR, AUDIO_DIR, CLIP_DIR):
     os.makedirs(d, exist_ok=True)
-
+ 
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-
+ 
 FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
-
+ 
 # Bu kanalin sabit gorsel kimligi: canli, ortayuzyil gouache poster tarzi (eski seyahat
-# afisleri estetigi). Onceki (16-bit piksel sanati, iliski psikolojisi) kimliginden
+# afisleri estetigi). Onceki (16-bit piksel sanati, iliski psikolojisi) kimliginden BILEREK
 # BILEREK degistirildi - kanal artik PARA PSIKOLOJISI konusuna donusuyor. Konuya gore
 # 3 farkli (ama ayni canli gouache ailesinden) palet arasinda rotasyon var.
 PALETTES = [
@@ -47,8 +47,8 @@ PALETTES = [
     "burnt orange and deep navy blue, with warm cream accents",
     "forest green and deep burgundy, with bright golden accents",
 ]
-
-
+ 
+ 
 def style_guide_for_topic(topic: str) -> str:
     """Konuya gore (tutarli, ayni konu hep ayni paleti alsin diye hash tabanli) bir palet secer."""
     palette = PALETTES[hash(topic) % len(PALETTES)]
@@ -60,13 +60,13 @@ def style_guide_for_topic(topic: str) -> str:
         "the viewer can follow. Energetic, warm, optimistic-but-cautionary atmosphere. "
         "No text, no letters, no numbers anywhere in the image."
     )
-
-
+ 
+ 
 NARRATOR_VOICE = "en-GB-Neural2-F"
-
+ 
 _vertex_token_cache = {"token": None}
-
-
+ 
+ 
 def _get_vertex_access_token() -> str:
     if _vertex_token_cache["token"]:
         return _vertex_token_cache["token"]
@@ -74,7 +74,7 @@ def _get_vertex_access_token() -> str:
         raise RuntimeError("GCP_SERVICE_ACCOUNT_JSON tanımlı değil.")
     from google.oauth2 import service_account
     from google.auth.transport.requests import Request
-
+ 
     info = json.loads(GCP_SERVICE_ACCOUNT_JSON)
     credentials = service_account.Credentials.from_service_account_info(
         info, scopes=["https://www.googleapis.com/auth/cloud-platform"]
@@ -82,10 +82,10 @@ def _get_vertex_access_token() -> str:
     credentials.refresh(Request())
     _vertex_token_cache["token"] = credentials.token
     return credentials.token
-
-
+ 
+ 
 def _gemini_generate_image(prompt: str, out_path: str, aspect_ratio: str = "16:9"):
-    """Vertex AI (Nano Banana 2 Lite) ile gercek insan figurlu, 16-bit piksel sanati tarzinda gorsel uretir."""
+    """Vertex AI (Nano Banana 2 Lite) ile gercek insan figurlu, gouache poster tarzinda gorsel uretir."""
     token = _get_vertex_access_token()
     host = "aiplatform.googleapis.com" if GCP_REGION == "global" else f"{GCP_REGION}-aiplatform.googleapis.com"
     url = (
@@ -101,7 +101,7 @@ def _gemini_generate_image(prompt: str, out_path: str, aspect_ratio: str = "16:9
         url, data=data,
         headers={"Content-Type": "application/json", "Authorization": f"Bearer {token}"},
     )
-
+ 
     max_retries = 6
     result = None
     for attempt in range(max_retries):
@@ -118,7 +118,7 @@ def _gemini_generate_image(prompt: str, out_path: str, aspect_ratio: str = "16:9
                 continue
             print(f"VERTEX AI HATA {e.code}: {body}")
             raise
-
+ 
     parts_out = result["candidates"][0]["content"]["parts"]
     image_b64 = None
     for part in parts_out:
@@ -129,14 +129,14 @@ def _gemini_generate_image(prompt: str, out_path: str, aspect_ratio: str = "16:9
         raise RuntimeError(f"Vertex AI yanıtında görsel bulunamadı: {result}")
     with open(out_path, "wb") as f:
         f.write(base64.b64decode(image_b64))
-
-
+ 
+ 
 def generate_image(prompt: str, out_path: str, topic: str, aspect_ratio: str = "16:9"):
     full_prompt = f"{style_guide_for_topic(topic)} {prompt}"
     _gemini_generate_image(full_prompt, out_path, aspect_ratio=aspect_ratio)
     time.sleep(8)  # dakikalik hiz limitine takilmamak icin
-
-
+ 
+ 
 def _try_gemini_tts(text: str, tone_prompt: str, out_path: str) -> bool:
     """DENEYSEL: Google'in yeni Gemini-TTS modeliyle, dogal dilde ton/duygu talimati vererek
     seslendirme uretmeyi dener (orn. 'bunu kuru bir alaycilikla soyle'). Herhangi bir sebeple
@@ -174,8 +174,8 @@ def _try_gemini_tts(text: str, tone_prompt: str, out_path: str) -> bool:
     except Exception as e:
         print(f"  (Gemini-TTS denemesi başarısız, standart sese dönülüyor: {e})")
         return False
-
-
+ 
+ 
 def generate_audio(text: str, index: int, prefix: str = "scene", speaking_rate: float = 0.97,
                     pitch: float = 0.0, volume_gain_db: float = 10.0, emphasize_last_words: int = 0,
                     tone_prompt: str = "") -> str:
@@ -184,13 +184,13 @@ def generate_audio(text: str, index: int, prefix: str = "scene", speaking_rate: 
     guvenilir standart sese (Neural2) duser."""
     if not GOOGLE_TTS_KEY:
         raise RuntimeError("GOOGLE_TTS_API_KEY tanımlı değil.")
-
+ 
     out_path = os.path.join(AUDIO_DIR, f"{prefix}_{index:03d}.mp3")
     print(f"[{prefix} {index}] Seslendirme üretiliyor ({len(text)} karakter)...")
-
+ 
     if tone_prompt and _try_gemini_tts(text, tone_prompt, out_path):
         return out_path
-
+ 
     if emphasize_last_words > 0:
         words = text.split()
         if len(words) > emphasize_last_words:
@@ -202,7 +202,7 @@ def generate_audio(text: str, index: int, prefix: str = "scene", speaking_rate: 
         input_field = {"ssml": ssml}
     else:
         input_field = {"text": text}
-
+ 
     url = f"https://texttospeech.googleapis.com/v1/text:synthesize?key={GOOGLE_TTS_KEY}"
     payload = {
         "input": input_field,
@@ -220,14 +220,14 @@ def generate_audio(text: str, index: int, prefix: str = "scene", speaking_rate: 
     with open(out_path, "wb") as f:
         f.write(audio_bytes)
     return out_path
-
-
+ 
+ 
 def get_audio_duration(path: str) -> float:
     cmd = ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", path]
     result = subprocess.run(cmd, capture_output=True, text=True, check=True)
     return float(result.stdout.strip())
-
-
+ 
+ 
 def wrap_text(text: str, max_chars: int = 42) -> str:
     words = text.split()
     lines, current = [], ""
@@ -241,8 +241,8 @@ def wrap_text(text: str, max_chars: int = 42) -> str:
     if current:
         lines.append(current)
     return "\n".join(lines)
-
-
+ 
+ 
 def make_scene_clip(image_path: str, audio_path: str, index: int, subtitle_text: str = "",
                      flash_caption: bool = False, vertical: bool = False, prefix: str = "clip",
                      zoom_rate: float = 0.0006) -> str:
@@ -253,20 +253,20 @@ def make_scene_clip(image_path: str, audio_path: str, index: int, subtitle_text:
     fps = 30
     total_frames = int(duration * fps)
     out_path = os.path.join(CLIP_DIR, f"{prefix}_{index:03d}.mp4")
-
+ 
     if vertical:
         scale_w, scale_h, canvas = 1350, 2400, "1080x1920"
         fontsize, flash_fontsize, y_pos = 40, 50, "h-320"
     else:
         scale_w, scale_h, canvas = 2400, 1350, "1920x1080"
         fontsize, flash_fontsize, y_pos = 34, 44, "h-170"
-
+ 
     vf_parts = [
         f"scale={scale_w}:{scale_h}:force_original_aspect_ratio=increase",
         f"crop={scale_w}:{scale_h}",
         f"zoompan=z='min(zoom+{zoom_rate},1.25)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={total_frames}:s={canvas}:fps={fps}",
     ]
-
+ 
     if subtitle_text and flash_caption:
         words = subtitle_text.split()
         chunk_size = 2
@@ -287,7 +287,7 @@ def make_scene_clip(image_path: str, audio_path: str, index: int, subtitle_text:
             f"drawtext=fontfile={FONT}:text='{safe_text}':fontcolor=white:fontsize={fontsize}:"
             f"borderw=3:bordercolor=black:x=(w-text_w)/2:y={y_pos}:line_spacing=6"
         )
-
+ 
     vf = ",".join(vf_parts)
     cmd = [
         "ffmpeg", "-y", "-loop", "1", "-i", image_path, "-i", audio_path,
@@ -300,8 +300,8 @@ def make_scene_clip(image_path: str, audio_path: str, index: int, subtitle_text:
     print(f"[{prefix} {index}] ffmpeg ile sahne birleştiriliyor ({duration:.1f}sn)...")
     subprocess.run(cmd, check=True, capture_output=True, timeout=90)
     return out_path, duration
-
-
+ 
+ 
 def concat_clips(clip_paths: list, final_name: str) -> str:
     list_file = os.path.join(OUTPUT_DIR, f"concat_list_{final_name}.txt")
     with open(list_file, "w") as f:
@@ -311,8 +311,8 @@ def concat_clips(clip_paths: list, final_name: str) -> str:
     cmd = ["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", list_file, "-c", "copy", final_path]
     subprocess.run(cmd, check=True, capture_output=True, timeout=180)
     return final_path
-
-
+ 
+ 
 def generate_thumbnail(key_object: str, secret_object: str, headline_text: str, topic: str) -> str:
     """Kapak resmini SABIT 'heykel formulu' ile uretir - ayni kanitlanmis kompozisyon
     (beyaz zemin, gizemli obje, parlayan sir) ama bu kanalin kimligine uygun canli gouache
@@ -330,7 +330,7 @@ def generate_thumbnail(key_object: str, secret_object: str, headline_text: str, 
     )
     scene_img = os.path.join(OUTPUT_DIR, "thumb_scene.jpg")
     _gemini_generate_image(scene_prompt, scene_img, aspect_ratio="16:9")
-
+ 
     final_thumb = os.path.join(OUTPUT_DIR, "thumbnail.jpg")
     safe_headline = headline_text.replace("'", "\u2019").replace(":", "\\:").replace(",", "\\,")
     filter_complex = (
@@ -346,17 +346,17 @@ def generate_thumbnail(key_object: str, secret_object: str, headline_text: str, 
     ]
     subprocess.run(cmd, check=True, capture_output=True, timeout=60)
     return final_thumb
-
-
+ 
+ 
 def upload_to_youtube(video_path: str, thumb_path: str, meta: dict):
     if not (YT_CLIENT_ID and YT_CLIENT_SECRET and YT_REFRESH_TOKEN):
         print("YouTube secret'ları eksik, yükleme atlanıyor.")
         return None
-
+ 
     from google.oauth2.credentials import Credentials
     from googleapiclient.discovery import build
     from googleapiclient.http import MediaFileUpload
-
+ 
     creds = Credentials(
         token=None, refresh_token=YT_REFRESH_TOKEN, token_uri="https://oauth2.googleapis.com/token",
         client_id=YT_CLIENT_ID, client_secret=YT_CLIENT_SECRET,
@@ -384,12 +384,12 @@ def upload_to_youtube(video_path: str, thumb_path: str, meta: dict):
     if thumb_path and os.path.exists(thumb_path):
         youtube.thumbnails().set(videoId=video_id, media_body=MediaFileUpload(thumb_path)).execute()
     return video_id
-
-
+ 
+ 
 # ============================================================
 # SENARYO YAZIMI - tek Gemini istegiyle HEM uzun video HEM Short uretir
 # ============================================================
-
+ 
 def expand_topic_to_package(topic: str, stage_label: str = "") -> dict:
     system_prompt = f"""You are the head writer for a YouTube channel about the real psychology of money —
 every episode dives into a specific, research-grounded financial behavior (spending, saving, risk, debt,
@@ -397,13 +397,13 @@ status, scarcity, greed, loss aversion, etc.), reveals a genuine "twist" or coun
 connects it to a timeless truth about why people make the money decisions they make. Tone: warm, curious,
 and clear — like a smart friend who finds this stuff genuinely fascinating and explains it simply, never
 academic, never a cheap "AI slop" listicle voice.
-
+ 
 TOPIC: {topic}
-
+ 
 Write STRICT JSON (no markdown fences, no commentary, just the JSON object) containing a FULL production
 package: one long-form video script AND one Short script, sharing the exact same title, both telling the
 same core story (the Short is a tightly compressed version, not a teaser).
-
+ 
 OPENING VARIETY RULE (applies to short_scenes[0], and to long_scenes right after the standard intro block
 below): Do NOT always use the exact same opening formula. Pick ONE of these three hook styles at random for
 this episode, based on whichever fits the story best:
@@ -413,26 +413,26 @@ this episode, based on whichever fits the story best:
     the world's smartest scientists were completely wrong about a skull.").
 (c) A direct address daring the viewer's own assumption (e.g. "You've probably never questioned this — but
     you should.").
-
+ 
 EVERYDAY LANGUAGE REQUIREMENT: Write like a smart friend explaining real psychology over coffee — casual,
 conversational, plain everyday words and short sentences. NOT academic, NOT a formal documentary voice, NOT
 stiff. Still grounded in real psychology (concrete mechanisms, real research, avoid vague clichés — see the
 specificity rule below), just delivered simply and naturally, the way you'd actually talk to a friend.
-
+ 
 EDITORIAL VOICE REQUIREMENT: Somewhere in the long-form script (not the Short), include at least one moment
 of genuine first-person-feeling editorial interpretation or dry observation from the narrator — a specific,
 episode-tailored aside that reflects a point of view, not just a recitation of facts (e.g. a wry comment on
 the irony of the pattern, a pointed observation about what it reveals about people, a moment of "and here's
 the part most people get wrong about this"). This must be tailored to THIS story's specific details, not a
 generic template phrase reusable across episodes.
-
+ 
 TONE DIRECTION PER SCENE: Every scene needs a "tone_prompt" field — a short (5-10 word) natural-language
 delivery direction for a narrator reading that specific line, tailored to what's actually happening in it
 (e.g. "gravely, letting the weight of it land", "with dry, knowing sarcasm", "quick and urgent, almost
 alarmed", "curious, leaning in", "flat and matter-of-fact, almost deadpan"). Vary these across the script to
 match the emotional arc of the story — a hook should feel different from a tragic detail, which should feel
 different from a wry aside. Do not reuse the exact same tone_prompt twice in one script.
-
+ 
 LONG-FORM SCRIPT (long_scenes): {{'~38 to 42 scenes'}} total. It MUST begin with this SHORT standard intro
 (only 2 scenes total, do not pad it out), in this exact order:
 1. DIRECT TOPIC STATEMENT (1 scene): plainly and casually say what today's topic actually is, right away —
@@ -446,18 +446,18 @@ continue: a natural mid-video comment-bait line about two-thirds through (1, e.g
 experienced this") -> the deeper psychological mechanism explained with real specificity (several, avoid
 vague clichés, include concrete reasoning) -> resolution (1-2) -> reflective closing question + natural
 closing line (1-2). Each scene: concrete narration sentence(s) + a matching image_prompt describing a scene
-with clearly readable human characters (16-bit pixel art game style; no text/letters in the image itself).
+with clearly readable human characters (no text/letters in the image itself).
 Target total spoken duration around 5 minutes — keep the intro tight, spend the real time on the substance.
-
+ 
 SHORT SCRIPT (short_scenes): 8 to 12 scenes. Do NOT include the standard intro block above — go straight
 into the Opening Variety Rule hook. Same story compressed to its sharpest essence, same twist, ending with a
 short punchy reflective line + subscribe mention. Target total spoken duration under 55 seconds — write
 tightly, no filler.
-
+ 
 Both scripts must be FACTUALLY GROUNDED — use real documented history. If uncertain of an exact number/date,
 use a reasonable, clearly-labeled approximation rather than fabricating false precision. Avoid generic
 clichés — every scene should add real, specific information.
-
+ 
 video_meta.title: applies to BOTH the long video and the Short (same title), curiosity-driven, under 65
 characters. It should still clearly signal the real, concrete topic (the actual financial/psychological
 behavior), not be pure abstract clickbait — curiosity AND clarity together, not one instead of the other.
@@ -489,9 +489,9 @@ title (which must stay search-friendly and name the concrete topic), the thumbna
 risk — consider making it feel like it's about the VIEWER directly rather than the topic (e.g. "YOU'VE
 BEEN FOOLED BY THIS" or "YOU'D HAVE BELIEVED IT TOO" instead of naming the story), when that framing fits
 naturally. Vary this across episodes — don't use the same framing every time.
-
+ 
 CRITICAL: Output must be STRICTLY VALID JSON. Escape internal double quotes as \\". No trailing commas.
-
+ 
 Output EXACTLY this schema:
 {{
   "video_meta": {{"title": "...", "description": "...", "tags": ["...", "..."]}},
@@ -500,7 +500,7 @@ Output EXACTLY this schema:
   "short_scenes": [{{"image_prompt": "...", "narration": "...", "tone_prompt": "..."}}]
 }}
 """
-
+ 
     token = _get_vertex_access_token()
     host = "aiplatform.googleapis.com" if GCP_REGION == "global" else f"{GCP_REGION}-aiplatform.googleapis.com"
     url = (
@@ -517,7 +517,7 @@ Output EXACTLY this schema:
         headers={"Content-Type": "application/json", "Authorization": f"Bearer {token}"},
     )
     print(f"Konu senaryoya çevriliyor: {topic[:70]}...")
-
+ 
     max_attempts = 3
     config = None
     for attempt in range(max_attempts):
@@ -528,7 +528,7 @@ Output EXACTLY this schema:
             body = e.read().decode("utf-8", errors="ignore")
             print(f"GEMINI METIN HATA {e.code}: {body}")
             raise
-
+ 
         text_out = result["candidates"][0]["content"]["parts"][0]["text"].strip()
         if text_out.startswith("```"):
             text_out = text_out.split("```")[1]
@@ -542,14 +542,14 @@ Output EXACTLY this schema:
             if attempt == max_attempts - 1:
                 raise
             continue
-
+ 
     return config
-
-
+ 
+ 
 # ============================================================
 # URETIM AKISI
 # ============================================================
-
+ 
 def build_long_video(scenes: list, meta: dict, thumb_cfg: dict, topic: str) -> tuple:
     zoom_rate = 0.0004 + (hash(topic) % 5) * 0.0001  # 0.0004-0.0008 arasi, konuya gore sabit ama degisken
     speaking_rate = 0.94 + (hash(topic + "rate") % 7) * 0.01  # 0.94-1.00 arasi
@@ -572,10 +572,10 @@ def build_long_video(scenes: list, meta: dict, thumb_cfg: dict, topic: str) -> t
         except Exception as e:
             print(f"[video {i}] SAHNE ATLANDI: {e}")
             continue
-
+ 
     if not clip_paths:
         raise RuntimeError("Uzun video için hiçbir sahne üretilemedi.")
-
+ 
     final_video = concat_clips(clip_paths, "final_video.mp4")
     thumb_path = None
     if thumb_cfg.get("key_object"):
@@ -586,8 +586,8 @@ def build_long_video(scenes: list, meta: dict, thumb_cfg: dict, topic: str) -> t
             topic,
         )
     return final_video, thumb_path
-
-
+ 
+ 
 def build_short_video(scenes: list, meta: dict, topic: str) -> str:
     zoom_rate = 0.0004 + (hash(topic) % 5) * 0.0001
     speaking_rate = 0.94 + (hash(topic + "rate") % 7) * 0.01
@@ -609,54 +609,55 @@ def build_short_video(scenes: list, meta: dict, topic: str) -> str:
         except Exception as e:
             print(f"[short {i}] SAHNE ATLANDI: {e}")
             continue
-
+ 
     if not clip_paths:
         raise RuntimeError("Short için hiçbir sahne üretilemedi.")
-
+ 
     return concat_clips(clip_paths, "final_short.mp4")
-
-
+ 
+ 
 def process_topic(topic_path: str):
     with open(topic_path, "r", encoding="utf-8") as f:
         config = json.load(f)
     topic = config["topic"]
     stage_label = config.get("stage", "")
-
+ 
     # Dosya adindan (orn. "005_konu.json") bolum numarasi dogrudan alinir - kaydirma yok.
     # 005_konu.json -> baslikta "5- ..." olarak gorunur.
     filename = os.path.basename(topic_path)
     match = re.match(r"^(\d+)_", filename)
     episode_number = int(match.group(1)) if match else None
-
+ 
     package = expand_topic_to_package(topic, stage_label=stage_label)
     with open(os.path.join(OUTPUT_DIR, "expanded_package.json"), "w", encoding="utf-8") as f:
         json.dump(package, f, ensure_ascii=False, indent=2)
-
+ 
     meta = package.get("video_meta", {})
     thumb_cfg = package.get("thumbnail", {})
-
+ 
     if episode_number:
         meta["title"] = f"{episode_number}- {meta.get('title', '')}"
-
+ 
     print(f"\n=== UZUN VIDEO ({len(package.get('long_scenes', []))} sahne) ===")
     final_video, thumb_path = build_long_video(package.get("long_scenes", []), meta, thumb_cfg, topic)
     print(f"Uzun video hazır: {final_video}")
     upload_to_youtube(final_video, thumb_path, meta)
-
+ 
     print(f"\n=== SHORT ({len(package.get('short_scenes', []))} sahne) ===")
     final_short = build_short_video(package.get("short_scenes", []), meta, topic)
     print(f"Short hazır: {final_short}")
     upload_to_youtube(final_short, None, meta)
-
+ 
     print("\nİkisi de aynı başlıkla yüklendi:", meta.get("title", ""))
-
-
+ 
+ 
 def main():
     if len(sys.argv) < 2:
         print("Kullanım: python generate_relationship_video.py queue/relationship_topics/XXX_konu.json")
         sys.exit(1)
     process_topic(sys.argv[1])
-
-
+ 
+ 
 if __name__ == "__main__":
     main()
+ 
