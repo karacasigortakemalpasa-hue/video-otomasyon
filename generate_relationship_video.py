@@ -38,28 +38,27 @@ USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 
 FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 
-# Bu kanalin sabit gorsel kimligi: 16-bit piksel sanati, nostaljik oyun estetigi.
-# 16-bit piksel sanati, gercek insan figurleriyle - artik sahnelerde GERCEK,
-# okunakli insan figurleri var (izleyici kim kimdir anlayabilsin diye), ama piksel
-# sanati oldugu icin fotogercekci/tutarlilik riski tasimiyor. Konuya gore 3 farkli
-# (ama ayni nostaljik oyun ailesinden) atmosfer/isik onayarindan biri seciliyor.
-MOODS = [
-    "melancholic night scene, warm indoor lighting against a dark blue window",
-    "quiet golden-hour light spilling through a doorway, soft long shadows",
-    "rainy window light, warm lamp glow inside, cool blue tones outside",
+# Bu kanalin sabit gorsel kimligi: canli, ortayuzyil gouache poster tarzi (eski seyahat
+# afisleri estetigi). Onceki (16-bit piksel sanati, iliski psikolojisi) kimliginden
+# BILEREK degistirildi - kanal artik PARA PSIKOLOJISI konusuna donusuyor. Konuya gore
+# 3 farkli (ama ayni canli gouache ailesinden) palet arasinda rotasyon var.
+PALETTES = [
+    "warm mustard yellow and rich teal, with punchy coral red accents",
+    "burnt orange and deep navy blue, with warm cream accents",
+    "forest green and deep burgundy, with bright golden accents",
 ]
 
 
 def style_guide_for_topic(topic: str) -> str:
-    """Konuya gore (tutarli, ayni konu hep ayni atmosferi alsin diye hash tabanli) bir mod secer."""
-    mood = MOODS[hash(topic) % len(MOODS)]
+    """Konuya gore (tutarli, ayni konu hep ayni paleti alsin diye hash tabanli) bir palet secer."""
+    palette = PALETTES[hash(topic) % len(PALETTES)]
     return (
-        f"16-bit pixel art illustration, {mood}, nostalgic retro video game aesthetic, visible "
-        "pixel grid, limited retro color palette. Scenes include simple, clearly human pixel-art "
-        "characters with readable expressions and body language — real people the viewer can "
-        "follow, not abstract shapes. Cozy, melancholic, emotionally warm atmosphere reminiscent "
-        "of narrative indie games. No text, no letters, no numbers, no UI elements anywhere in "
-        "the image."
+        f"Vibrant mid-century gouache poster illustration, bold flat saturated colors, "
+        f"retro travel-poster aesthetic, {palette}, textured paint strokes, confident "
+        "graphic shapes, clean bold outlines. Scenes include simple, clearly human "
+        "illustrated figures with readable expressions and body language — real people "
+        "the viewer can follow. Energetic, warm, optimistic-but-cautionary atmosphere. "
+        "No text, no letters, no numbers anywhere in the image."
     )
 
 
@@ -315,18 +314,19 @@ def concat_clips(clip_paths: list, final_name: str) -> str:
 
 
 def generate_thumbnail(key_object: str, secret_object: str, headline_text: str, topic: str) -> str:
-    """Kapak resmini SABIT '8-bit heykel formulu' ile uretir - ayni kanitlanmis kompozisyon
-    (beyaz zemin, gizemli heykel, parlayan sir) ama bu kanalin kimligine uygun piksel sanati
-    olarak. Kanal stilinden (style_guide_for_topic) BAGIMSIZ calisir."""
+    """Kapak resmini SABIT 'heykel formulu' ile uretir - ayni kanitlanmis kompozisyon
+    (beyaz zemin, gizemli obje, parlayan sir) ama bu kanalin kimligine uygun canli gouache
+    poster tarzinda. Kanal stilinden (style_guide_for_topic) BAGIMSIZ calisir."""
     scene_prompt = (
-        f"Surreal clickbait YouTube thumbnail, 16-bit pixel art style, visible pixel grid, "
-        f"blocky retro video game aesthetic. Pure white background, minimalist composition, "
-        f"massive negative space, clinical and cold atmosphere, rendered entirely in pixel art. "
-        f"A massive pixel-art stone statue/sculpture of {key_object}, weathered blocky pixel "
-        f"texture, dramatic pixel-art lighting, sharp pixelated detail. A hidden mechanical hatch "
-        f"built into the pixel-art stone is open, revealing a glowing red pixel-art "
-        f"{secret_object} inside. High visual tension, mysterious retro game vibe. No text, no "
-        f"letters, no numbers anywhere in the image."
+        f"Surreal clickbait YouTube thumbnail, vibrant mid-century gouache poster style, bold "
+        f"flat saturated colors, retro travel-poster aesthetic. Pure white background, "
+        f"minimalist composition, massive negative space, clean bold graphic atmosphere. A "
+        f"large, bold sculptural rendering of {key_object}, painted with confident poster-style "
+        f"brush strokes and thick outlines, dramatic poster lighting, sharp graphic detail. A "
+        f"hidden compartment built into the object is open, revealing a glowing red "
+        f"{secret_object} inside, painted in the same bold poster style. High visual tension, "
+        f"eye-catching vintage-advertisement vibe. No text, no letters, no numbers anywhere in "
+        f"the image."
     )
     scene_img = os.path.join(OUTPUT_DIR, "thumb_scene.jpg")
     _gemini_generate_image(scene_prompt, scene_img, aspect_ratio="16:9")
@@ -391,18 +391,13 @@ def upload_to_youtube(video_path: str, thumb_path: str, meta: dict):
 # ============================================================
 
 def expand_topic_to_package(topic: str, stage_label: str = "") -> dict:
-    stage_context = (
-        f"\nCONTEXT: This episode belongs to the '{stage_label}' stage of the channel's A-to-Z relationship "
-        "journey (being single, meeting someone, commitment, deep love or toxicity, breakup, healing, "
-        "starting over). Let this context quietly inform the topic statement, not a separate scene.\n"
-        if stage_label else ""
-    )
-    system_prompt = f"""You are the head writer for a YouTube channel about the real psychology of love and
-relationships — every episode dives into a specific, research-grounded phenomenon (attachment, attraction,
-conflict, betrayal, heartbreak, reconciliation, etc.), reveals a genuine "twist" or counterintuitive insight,
-and connects it to a timeless truth about how people love and hurt each other. Tone: warm, casual, like a
-smart friend explaining real psychology over coffee — never academic, never a cheap "AI slop" listicle voice.
-{stage_context}
+    system_prompt = f"""You are the head writer for a YouTube channel about the real psychology of money —
+every episode dives into a specific, research-grounded financial behavior (spending, saving, risk, debt,
+status, scarcity, greed, loss aversion, etc.), reveals a genuine "twist" or counterintuitive insight, and
+connects it to a timeless truth about why people make the money decisions they make. Tone: warm, curious,
+and clear — like a smart friend who finds this stuff genuinely fascinating and explains it simply, never
+academic, never a cheap "AI slop" listicle voice.
+
 TOPIC: {topic}
 
 Write STRICT JSON (no markdown fences, no commentary, just the JSON object) containing a FULL production
@@ -464,32 +459,31 @@ use a reasonable, clearly-labeled approximation rather than fabricating false pr
 clichés — every scene should add real, specific information.
 
 video_meta.title: applies to BOTH the long video and the Short (same title), curiosity-driven, under 65
-characters. It should still clearly signal the real, concrete topic (the actual psychological phenomenon or
-relationship stage), not be pure abstract clickbait — curiosity AND clarity together, not one instead of the
-other.
+characters. It should still clearly signal the real, concrete topic (the actual financial/psychological
+behavior), not be pure abstract clickbait — curiosity AND clarity together, not one instead of the other.
 video_meta.description: Write 200-300 words, structured for YouTube's discovery algorithm, in this order:
 (1) The very FIRST sentence must clearly and plainly state the real subject of the video in concrete terms
-    (the actual psychological phenomenon, relationship stage, and topic category — e.g. "This video explores
-    [X], a psychological pattern in [attraction/breakup/attachment/etc.]...") so both viewers and YouTube's
+    (the actual financial behavior/phenomenon and topic category — e.g. "This video explores [X], a
+    psychological pattern behind how people [spend/save/borrow/invest]...") so both viewers and YouTube's
     system immediately know what this is about, even if only the first sentence is visible before "show more".
 (2) Then 2-3 sentences expanding naturally on what the video actually covers and why it matters — use
     several different natural phrasings of the topic and its themes (semantic variation: e.g. don't only say
-    "relationship" ten times — also use "attachment", "psychology of love", "breakup recovery", "dating"
-    etc. where accurate) so the description reads as genuinely rich, not keyword-stuffed.
+    "money" ten times — also use "personal finance", "spending psychology", "financial behavior", "money
+    habits" etc. where accurate) so the description reads as genuinely rich, not keyword-stuffed.
 (3) A short factual note on sourcing/accuracy if relevant.
 (4) End with 3-5 relevant hashtags.
 Never repeat the same exact keyword unnaturally — vary phrasing, write like a real, well-informed video
 description a human researcher would write, not an SEO template.
-video_meta.tags: 8-12 relevant keyword tags, mixing broad category tags (e.g. "relationship psychology",
-"dating advice", "attachment styles") with specific niche tags naming the actual subject.
+video_meta.tags: 8-12 relevant keyword tags, mixing broad category tags (e.g. "psychology of money",
+"personal finance", "behavioral economics") with specific niche tags naming the actual subject.
 thumbnail.key_object: Analyze this specific story/topic and identify ONE single physical object that best
-symbolizes it (e.g. "a wedding ring", "a torn love letter", "a broken heart-shaped locket", "two wine
-glasses"). Short phrase, 3-8 words. This object will be rendered as a dramatic pixel-art stone sculpture on
+symbolizes it (e.g. "a cracked piggy bank", "a winning lottery ticket", "a credit card", "a stack of coins").
+Short phrase, 3-8 words. This object will be rendered as a dramatic gouache-poster-style sculptural object on
 the thumbnail — pick something concrete and visually strong, not abstract.
 thumbnail.secret_object: A short (2-6 word) description of a small object representing the hidden twist or
-emotional core of this story (e.g. "a hidden diary page", "a second phone", "a faded photograph"). Describe
-ONLY the bare object itself — do NOT include words like "glowing" or "red" in this field, since those are
-added automatically by the renderer.
+emotional core of this story (e.g. "a hidden debt notice", "an empty wallet", "a shrinking dollar bill").
+Describe ONLY the bare object itself — do NOT include words like "glowing" or "red" in this field, since
+those are added automatically by the renderer.
 thumbnail.headline_text: a short, bold headline for the thumbnail (under 40 characters). Unlike the video
 title (which must stay search-friendly and name the concrete topic), the thumbnail headline can take more
 risk — consider making it feel like it's about the VIEWER directly rather than the topic (e.g. "YOU'VE
