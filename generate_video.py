@@ -311,19 +311,35 @@ def concat_clips(clip_paths: list, final_name: str) -> str:
     return final_path
 
 
-def generate_thumbnail(key_object: str, secret_object: str, headline_text: str, topic: str) -> str:
-    """Kapak resmini SABIT 'heykel formulu' ile uretir - bu, videonun geri kalanindaki
-    (risograph) tarzdan BILEREK farkli, kanitlanmis yuksek-CTR bir kapak stili.
-    Kanal stilinden (style_guide_for_topic) BAGIMSIZ calisir - dogrudan _gemini_generate_image
-    kullanilir, STYLE_GUIDE eklenmez."""
+def generate_thumbnail(key_object: str, reaction: str, headline_text: str, topic: str) -> str:
+    """Kapak resmini SABIT 'abartili tepki enerjisi' (MrBeast tarzi) ile uretir - bu, videonun
+    geri kalanindaki (risograph) tarzdan BILEREK farkli, yuksek enerji/yuksek CTR kapak stili.
+    AYNI KOMPOZISYONUN her seferinde tekrarlanmasi ("sablon klonu" riski) onlenmesi icin, konuya
+    gore (hash tabanli, tutarli) 3 farkli kompozisyon SABLONU arasinda donusum var - enerji/renk
+    dili sabit kaliyor, sadece yerlesim degisiyor. Kanal stilinden BAGIMSIZ calisir."""
+    compositions = [
+        (
+            f"Extreme close-up of a generic, anonymous person's face showing {reaction}, mouth "
+            f"open, eyes wide, intensely exaggerated expression, positioned right next to a large, "
+            f"sharply detailed rendering of {key_object}."
+        ),
+        (
+            f"A large, dramatically lit rendering of {key_object} fills most of the frame, with a "
+            f"bold thick red circle highlighting one small shocking detail on it, no face in frame, "
+            f"intense dramatic side lighting creating deep shadows."
+        ),
+        (
+            f"A single hand reaching into frame to touch {key_object}, with just the edge of a "
+            f"generic anonymous face showing {reaction} cropped at the corner of the frame, dynamic "
+            f"diagonal composition."
+        ),
+    ]
+    composition = compositions[hash(topic) % len(compositions)]
     scene_prompt = (
-        f"Surreal clickbait YouTube thumbnail. Pure white background, minimalist composition, "
-        f"massive negative space, clinical and cold atmosphere. A massive, hyper-realistic stone "
-        f"sculpture of {key_object}, weathered texture, high-end museum lighting, sharp focus. "
-        f"A hidden mechanical hatch built into the stone is open, revealing a glowing red "
-        f"{secret_object} inside. High visual tension, mysterious vibe. 8k resolution, "
-        f"photorealistic, cinematic studio lighting, professional product photography style. "
-        f"No text, no letters, no numbers anywhere in the image."
+        f"High-energy clickbait YouTube thumbnail in the MrBeast style. {composition} Punchy "
+        f"oversaturated colors, bold high contrast lighting, dramatic rim light, shallow depth of "
+        f"field with a blurred vivid background, professional photography, 8k, sharp focus. No "
+        f"text, no letters, no numbers anywhere in the image."
     )
     scene_img = os.path.join(OUTPUT_DIR, "thumb_scene.jpg")
     _gemini_generate_image(scene_prompt, scene_img, aspect_ratio="16:9")
@@ -462,13 +478,11 @@ video_meta.tags: 8-12 relevant keyword tags, mixing broad category tags (e.g. "h
 "psychology") with specific niche tags naming the actual subject.
 thumbnail.key_object: Analyze this specific story and identify ONE single physical object that best
 symbolizes it (e.g. "an old vaudeville radio microphone", "a wedding ring", "a small glass vial", "a
-child's toy robot"). Short phrase, 3-8 words. This object will be rendered as a dramatic stone museum
-sculpture on the thumbnail — pick something concrete and visually strong, not abstract.
-thumbnail.secret_object: A short (2-6 word) description of a small object representing the hidden twist or
-secret of this story (e.g. "a tiny skull", "a burning dollar bill", "a broken heart", "a fake diamond").
-Describe ONLY the bare object itself — do NOT include words like "glowing" or "red" in this field, since
-those are added automatically by the renderer. This will glow red, revealed inside a hidden compartment in
-the sculpture from thumbnail.key_object.
+child's toy robot"). Short phrase, 3-8 words. Pick something concrete and visually strong, not abstract.
+thumbnail.reaction: A short (2-5 word) description of an exaggerated human emotional reaction that fits this
+story's twist (e.g. "utter shock and disbelief", "gasping in amazement", "wide-eyed fear", "stunned
+betrayal"). This will be shown on a generic anonymous face reacting to thumbnail.key_object, MrBeast-style —
+pick the emotion that best matches the story's actual twist, vary it across episodes.
 thumbnail.headline_text: a short, bold headline for the thumbnail (under 40 characters). Unlike the video
 title (which must stay search-friendly and name the concrete topic), the thumbnail headline can take more
 risk — consider making it feel like it's about the VIEWER directly rather than the topic (e.g. "YOU'VE
@@ -480,7 +494,7 @@ CRITICAL: Output must be STRICTLY VALID JSON. Escape internal double quotes as \
 Output EXACTLY this schema:
 {{
   "video_meta": {{"title": "...", "description": "...", "tags": ["...", "..."]}},
-  "thumbnail": {{"key_object": "...", "secret_object": "...", "headline_text": "..."}},
+  "thumbnail": {{"key_object": "...", "reaction": "...", "headline_text": "..."}},
   "long_scenes": [{{"image_prompt": "...", "narration": "...", "tone_prompt": "..."}}],
   "short_scenes": [{{"image_prompt": "...", "narration": "...", "tone_prompt": "..."}}]
 }}
@@ -566,7 +580,7 @@ def build_long_video(scenes: list, meta: dict, thumb_cfg: dict, topic: str) -> t
     if thumb_cfg.get("key_object"):
         thumb_path = generate_thumbnail(
             thumb_cfg["key_object"],
-            thumb_cfg.get("secret_object", "a small glowing object"),
+            thumb_cfg.get("reaction", "utter shock and disbelief"),
             thumb_cfg.get("headline_text", meta.get("title", "")),
             topic,
         )
