@@ -71,11 +71,18 @@ def style_guide_for_topic(topic: str) -> str:
 
 NARRATOR_VOICE = "en-GB-Neural2-D"
 
-_vertex_token_cache = {"token": None}
+_vertex_token_cache = {"token": None, "fetched_at": 0}
 
 
 def _get_vertex_access_token() -> str:
-    if _vertex_token_cache["token"]:
+    """Google'in erisim token'lari ~1 saatte suresi doluyor. Onceden token'i bir kere alip
+    sonsuza kadar onbellekte tutuyorduk - kisa (~5dk) videolarda hic sorun cikmiyordu, ama bu
+    UZUN OZEL BOLUM formatinda (1 saati asabilen calisma suresi) token ortada suresi dolup
+    tum kalan istekleri 401 hatasiyla cokertiyordu. Simdi 45 dakikada bir (guvenlik payiyla,
+    Google'in 60 dakikalik suresinden once) otomatik tazeleniyor.
+    """
+    token_age = time.time() - _vertex_token_cache["fetched_at"]
+    if _vertex_token_cache["token"] and token_age < 2700:  # 45 dakika
         return _vertex_token_cache["token"]
     if not GCP_SERVICE_ACCOUNT_JSON:
         raise RuntimeError("GCP_SERVICE_ACCOUNT_JSON tanımlı değil.")
@@ -88,6 +95,7 @@ def _get_vertex_access_token() -> str:
     )
     credentials.refresh(Request())
     _vertex_token_cache["token"] = credentials.token
+    _vertex_token_cache["fetched_at"] = time.time()
     return credentials.token
 
 
@@ -609,12 +617,17 @@ def build_long_video(scenes: list, meta: dict, thumb_cfg: dict, topic: str) -> t
     final_video = concat_clips(clip_paths, "final_video.mp4")
     thumb_path = None
     if thumb_cfg.get("key_object"):
-        thumb_path = generate_thumbnail(
-            thumb_cfg["key_object"],
-            thumb_cfg.get("reaction", "utter shock and disbelief"),
-            thumb_cfg.get("headline_text", meta.get("title", "")),
-            topic,
-        )
+        try:
+            thumb_path = generate_thumbnail(
+                thumb_cfg["key_object"],
+                thumb_cfg.get("reaction", "utter shock and disbelief"),
+                thumb_cfg.get("headline_text", meta.get("title", "")),
+                topic,
+            )
+        except Exception as e:
+            # KRITIK: Kapak basarisiz olsa bile, saatlerce ugrasip urettigimiz videoyu
+            # KAYBETMEYELIM. thumb_path None kalir, YouTube kendi varsayilan karesini kullanir.
+            print(f"  (Kapak uretimi tamamen basarisiz oldu, video YINE DE yuklenecek: {e})")
     return final_video, thumb_path
 
 
