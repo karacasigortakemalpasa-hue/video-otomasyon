@@ -38,14 +38,14 @@ USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 
 FONT = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 
-# Kanalin sabit gorsel kimligi: risograph iki-renk baski tarzi. Karakter/maskot yok -
-# tutarli bir illustrasyon DILI var, ama HER BOLUMDE birebir ayni renk cifti kullanilmiyor -
-# YouTube'un "sablon klonu" olarak isaretleyebilecegi mekanik tekrari azaltmak icin,
-# konuya gore 3 farkli (ama ayni aileden) iki-renk paletinden biri seciliyor.
+# Bu UZUN OZEL BOLUM dosyasinin gorsel kimligi: sepya tonlu arsiv fotografi estetigi. Ana
+# skandal kanalinin risograph tarzindan BILEREK farkli - hassas/ciddi konular (bu ilk kullanimda:
+# dini bir topluluk tarihi) icin daha saygili/belgesel bir ton. Konuya gore 3 farkli (ama ayni
+# sepya ailesinden) doku/isik varyasyonundan biri seciliyor.
 PALETTES = [
-    "deep plum violet ink and antique brass gold ink ONLY",
-    "deep prussian blue ink and burnt rust orange ink ONLY",
-    "dark forest green ink and faded crimson red ink ONLY",
+    "warm sepia and faded brown tones, soft diffused window light",
+    "muted sepia with slightly cooler grey undertones, overcast outdoor light",
+    "deep warm sepia with heavier film grain, dim indoor lamplight",
 ]
 
 
@@ -61,11 +61,11 @@ def style_guide_for_topic(topic: str) -> str:
     """Konuya gore (tutarli, ayni konu hep ayni paleti alsin diye hash tabanli) bir palet secer."""
     palette = PALETTES[_stable_hash(topic) % len(PALETTES)]
     return (
-        f"Two-color risograph print illustration, {palette}. Coarse halftone dot grain. "
-        "Deliberate ink misregistration. Heavy paper texture. Imperfect hand-inked outlines "
-        "with breaks and bleeds. Sparse, editorial composition. Flat 2D print aesthetic, no "
-        "3D, no photorealism, no digital polish. Vintage investigative-journalism poster "
-        "aesthetic. No text, no letters, no numbers anywhere in the image."
+        f"Vintage sepia-toned archival photograph style, early 20th century documentary "
+        f"photography aesthetic, {palette}, visible film grain, soft focus, slightly faded and "
+        "worn edges as if from an old print. People appear naturally as part of everyday scenes, "
+        "shown with dignity and realism, never caricatured or exaggerated. No text, no letters, "
+        "no numbers anywhere in the image."
     )
 
 
@@ -460,10 +460,16 @@ a generic template phrase reusable across episodes.
 
 TONE DIRECTION PER SCENE: Every scene needs a "tone_prompt" field — a short (5-10 word) natural-language
 delivery direction for a narrator reading that specific line, tailored to what's actually happening in it
-(e.g. "gravely, letting the weight of it land", "with dry, knowing sarcasm", "quick and urgent, almost
-alarmed", "curious, leaning in", "flat and matter-of-fact, almost deadpan"). Vary these across the script to
-match the emotional arc of the story — a hook should feel different from a tragic detail, which should feel
-different from a wry aside. Do not reuse the exact same tone_prompt twice in one script.
+(e.g. "grave but at a natural pace", "with dry, knowing sarcasm", "quick and urgent, almost alarmed",
+"curious, leaning in", "flat and matter-of-fact, almost deadpan"). Vary these across the script to match the
+emotional arc of the story — a hook should feel different from a tragic detail, which should feel different
+from a wry aside. Do not reuse the exact same tone_prompt twice in one script.
+
+CRITICAL PACING RULE: Regardless of emotional tone, delivery must ALWAYS stay at a natural, conversational
+speaking pace — like a real person talking, not reciting. NEVER instruct slow, halting, deliberate,
+word-by-word, or over-dramatic delivery, even for grave or emotional content — real gravity comes from word
+choice and the pause AFTER a line, not from stretching out every word. Avoid tone_prompt phrases like
+"slowly", "weightily", "let each word land" — these cause unnaturally halting, robotic-sounding narration.
 
 LONG-FORM SPECIAL EPISODE (long_scenes): This is a LONGER special episode — approximately 75 to 85 scenes,
 targeting 10 to 12 minutes of spoken duration (roughly double the channel's normal ~5 minute episode length).
@@ -590,8 +596,8 @@ Output EXACTLY this schema:
 
 def build_long_video(scenes: list, meta: dict, thumb_cfg: dict, topic: str) -> tuple:
     zoom_rate = 0.0004 + (_stable_hash(topic) % 5) * 0.0001  # 0.0004-0.0008 arasi, konuya gore sabit ama degisken
-    speaking_rate = 0.94 + (hash(topic + "rate") % 7) * 0.01  # 0.94-1.00 arasi
-    pitch = -1.5 + (hash(topic + "pitch") % 7) * 0.5  # -1.5 ile +1.5 arasi
+    speaking_rate = 0.94 + (_stable_hash(topic + "rate") % 7) * 0.01  # 0.94-1.00 arasi
+    pitch = -1.5 + (_stable_hash(topic + "pitch") % 7) * 0.5  # -1.5 ile +1.5 arasi
     clip_paths = []
     for i, scene in enumerate(scenes, start=1):
         narration = scene.get("narration", "").strip()
@@ -633,8 +639,8 @@ def build_long_video(scenes: list, meta: dict, thumb_cfg: dict, topic: str) -> t
 
 def build_short_video(scenes: list, meta: dict, topic: str) -> str:
     zoom_rate = 0.0004 + (_stable_hash(topic) % 5) * 0.0001
-    speaking_rate = 0.94 + (hash(topic + "rate") % 7) * 0.01
-    pitch = -1.5 + (hash(topic + "pitch") % 7) * 0.5
+    speaking_rate = 0.94 + (_stable_hash(topic + "rate") % 7) * 0.01
+    pitch = -1.5 + (_stable_hash(topic + "pitch") % 7) * 0.5
     clip_paths = []
     for i, scene in enumerate(scenes, start=1):
         narration = scene.get("narration", "").strip()
